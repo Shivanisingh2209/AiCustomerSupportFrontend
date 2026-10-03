@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getMyAssignedTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
+import AgentNavbar from "../../components/layout/AgentNavbar";
 
 const AgentDashboard = () => {
   const navigate = useNavigate();
@@ -47,39 +48,10 @@ const AgentDashboard = () => {
 
   const totalTickets = tickets.length;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-
-    navigate("/login");
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
 
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
-
-          <div>
-            <h1 className="text-2xl font-bold text-purple-700">
-              AI Customer Support
-            </h1>
-
-            <p className="text-sm text-gray-500">
-              Agent Panel
-            </p>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium hover:bg-gray-50"
-          >
-            Logout
-          </button>
-
-        </div>
-      </header>
+      <AgentNavbar />
 
       {/* Main */}
       <main className="mx-auto max-w-7xl p-8">
