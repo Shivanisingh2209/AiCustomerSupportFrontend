@@ -16,6 +16,7 @@ const Tickets = () => {
         const data = await getTickets();
 
         console.log("Tickets from backend:", data);
+        console.log("Number of tickets:", data.length);
 
         setTickets(data);
       } catch (error) {
@@ -31,7 +32,7 @@ const Tickets = () => {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="min-h-screen flex items-center justify-center">
         <h1 className="text-2xl font-bold">
           Loading tickets...
         </h1>
@@ -39,57 +40,58 @@ const Tickets = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Tickets
-          </h1>
-
-          <p className="mt-1 text-gray-500">
-            Customer support tickets
-          </p>
-        </div>
-
-        {/* Create Ticket Button */}
-        <button
-          onClick={() => navigate("/tickets/create")}
-          className="rounded-lg bg-purple-600 px-5 py-3 font-semibold text-white hover:bg-purple-700"
-        >
-          + Create Ticket
-        </button>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="mb-5 rounded-lg bg-red-100 p-4 text-red-700">
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="rounded-lg bg-red-100 p-5 text-red-700">
           {error}
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* No Tickets */}
-      {tickets.length === 0 && !error ? (
-        <div className="rounded-xl bg-white p-8 text-center shadow">
-          <p className="text-gray-500">
-            No tickets found.
-          </p>
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+
+      <div className="mx-auto max-w-7xl">
+
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+
+          <div>
+            <h1 className="text-3xl font-bold">
+              Tickets
+            </h1>
+
+            <p className="mt-1 text-gray-500">
+              Customer support tickets
+            </p>
+          </div>
 
           <button
             onClick={() => navigate("/tickets/create")}
-            className="mt-4 rounded-lg bg-purple-600 px-5 py-2 text-white hover:bg-purple-700"
+            className="rounded-lg bg-purple-600 px-5 py-3 font-semibold text-white hover:bg-purple-700"
           >
-            Create Your First Ticket
+            + Create Ticket
           </button>
+
         </div>
-      ) : (
-        /* Tickets Table */
+
+        {/* Debug */}
+        <div className="mb-6 rounded-lg bg-yellow-100 p-4">
+          <p className="font-semibold">
+            Total tickets: {tickets.length}
+          </p>
+        </div>
+
+        {/* Tickets Table */}
         <div className="overflow-hidden rounded-xl bg-white shadow">
+
           <table className="w-full">
+
             <thead className="bg-gray-100">
               <tr>
+
                 <th className="p-4 text-left">
                   Subject
                 </th>
@@ -109,41 +111,52 @@ const Tickets = () => {
                 <th className="p-4 text-left">
                   Agent
                 </th>
+
               </tr>
             </thead>
 
             <tbody>
+
               {tickets.map((ticket) => (
                 <tr
                   key={ticket.id}
                   className="cursor-pointer border-t hover:bg-gray-50"
-                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  onClick={() =>
+                    navigate(`/tickets/${ticket.id}`)
+                  }
                 >
-                  <td className="p-4">
-                    {ticket.subject}
+
+                  <td className="p-4 font-medium">
+                    {ticket.subject || "No subject"}
                   </td>
 
                   <td className="p-4">
-                    {ticket.customerName}
+                    {ticket.customerName || "Unknown"}
                   </td>
 
                   <td className="p-4">
-                    {ticket.priority}
+                    {ticket.priority || "-"}
                   </td>
 
                   <td className="p-4">
-                    {ticket.status}
+                    {ticket.status || "-"}
                   </td>
 
                   <td className="p-4">
-                    {ticket.agentId ?? "Unassigned"}
+                    {ticket.agentId || "Unassigned"}
                   </td>
+
                 </tr>
               ))}
+
             </tbody>
+
           </table>
+
         </div>
-      )}
+
+      </div>
+
     </div>
   );
 };

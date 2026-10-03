@@ -11,6 +11,13 @@ export interface TicketPage {
 
 export const getTickets = async (): Promise<Ticket[]> => {
   const response = await api.get<TicketPage>("/tickets");
-
   return response.data.content;
+};
+
+export const getMyAssignedTickets = async (): Promise<Ticket[]> => {
+  const response = await api.get<Ticket[]>(
+    "/tickets/agent/my"
+  );
+
+  return response.data;
 };

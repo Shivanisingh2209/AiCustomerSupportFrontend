@@ -11,7 +11,7 @@ export const getTicketMessages = async (
   return response.data;
 };
 
-export const createTicketMessage = async (
+export const sendTicketMessage = async (
   ticketId: string,
   message: string
 ): Promise<TicketMessage> => {
