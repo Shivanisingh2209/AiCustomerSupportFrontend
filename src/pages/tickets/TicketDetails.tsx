@@ -13,6 +13,7 @@ import {
 import type { Ticket } from "../../types/ticket";
 import type { TicketMessage } from "../../types/ticketMessage";
 import { updateTicketStatus } from "../../services/ticketService";
+import AgentNavbar from "../../components/layout/AgentNavbar";
 
 const TicketDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -270,11 +271,13 @@ const TicketDetails = () => {
   
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100">
+      <AgentNavbar />
+
+    <main className="p-8">
       <div className="mx-auto max-w-4xl">
 
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6">
           <div>
             <h1 className="text-3xl font-bold">
               Ticket Details
@@ -284,13 +287,6 @@ const TicketDetails = () => {
               Customer support ticket
             </p>
           </div>
-
-          <button
-            onClick={() => navigate("/agent/tickets")}
-            className="rounded-lg border bg-white px-5 py-3 font-medium hover:bg-gray-50"
-          >
-            ← Back to Assigned Tickets
-          </button>
         </div>
 
         {/* Ticket Information */}
@@ -589,6 +585,7 @@ const TicketDetails = () => {
           </div>
         </div>
       </div>
+    </main>
     </div>
   );
 };
