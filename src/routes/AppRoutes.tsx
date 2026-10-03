@@ -7,6 +7,7 @@ import CreateTicket from "../pages/tickets/CreateTicket";
 import TicketDetails from "../pages/tickets/TicketDetails";
 import AgentTickets from "../pages/agents/AgentTickets";
 import AgentDashboard from "../pages/agents/AgentDashboard";
+import ProtectedRoute from "./ProtectedRoute";
 
 const Home = () => {
   return (
@@ -24,12 +25,58 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/tickets/create" element={<CreateTicket />} />
-        <Route path="/tickets/:id" element={<TicketDetails />} />
-        <Route  path="/agent/dashboard"  element={<AgentDashboard />} />
-        <Route path="/agent/tickets" element={<AgentTickets />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["USER"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute allowedRoles={["USER"]}>
+              <Tickets />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/tickets/create"
+          element={
+            <ProtectedRoute allowedRoles={["USER"]}>
+              <CreateTicket />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/tickets/:id"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "AGENT"]}>
+              <TicketDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agent/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["AGENT"]}>
+              <AgentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/agent/tickets"
+          element={
+            <ProtectedRoute allowedRoles={["AGENT"]}>
+              <AgentTickets />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
     </BrowserRouter>
