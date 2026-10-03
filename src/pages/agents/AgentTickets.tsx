@@ -86,13 +86,6 @@ const AgentTickets = () => {
               </p>
             </div>
   
-            <button
-              onClick={() => navigate("/agent/dashboard")}
-              className="rounded-lg border bg-white px-5 py-3 font-medium hover:bg-gray-50"
-            >
-              ← Dashboard
-            </button>
-  
           </div>
   
           {error && (
