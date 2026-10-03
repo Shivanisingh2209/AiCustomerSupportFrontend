@@ -6,6 +6,7 @@ import Tickets from "../pages/tickets/Tickets";
 import CreateTicket from "../pages/tickets/CreateTicket";
 import TicketDetails from "../pages/tickets/TicketDetails";
 import AgentTickets from "../pages/agents/AgentTickets";
+import AgentDashboard from "../pages/agents/AgentDashboard";
 
 const Home = () => {
   return (
@@ -27,6 +28,7 @@ const AppRoutes = () => {
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/tickets/create" element={<CreateTicket />} />
         <Route path="/tickets/:id" element={<TicketDetails />} />
+        <Route  path="/agent/dashboard"  element={<AgentDashboard />} />
         <Route path="/agent/tickets" element={<AgentTickets />} />
 
       </Routes>

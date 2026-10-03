@@ -164,10 +164,10 @@ const TicketDetails = () => {
           </div>
 
           <button
-            onClick={() => navigate("/tickets")}
+            onClick={() => navigate("/agent/tickets")}
             className="rounded-lg border bg-white px-5 py-3 font-medium hover:bg-gray-50"
           >
-            ← Back
+            ← Back to Assigned Tickets
           </button>
         </div>
 
@@ -209,11 +209,11 @@ const TicketDetails = () => {
 
             <div className="rounded-lg bg-gray-50 p-4">
               <p className="text-sm text-gray-500">
-                Agent
+                Assigned Agent
               </p>
 
               <p className="mt-1 font-semibold">
-                {ticket.agentId ?? "Unassigned"}
+                {ticket.agentId ? "Assigned to you" : "Unassigned"}
               </p>
             </div>
 

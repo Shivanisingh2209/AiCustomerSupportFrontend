@@ -23,18 +23,40 @@ const Login = () => {
         email,
         password,
       });
-      
+
       console.log("Login response:", token);
-      
+
+      // Save JWT token
       localStorage.setItem("token", token);
-      
+
+      // Save logged-in email
       localStorage.setItem("userEmail", email);
-      
-      navigate("/dashboard");
+
+      // Read JWT payload
+      const payload = JSON.parse(
+        atob(token.split(".")[1])
+      );
+
+      console.log("JWT Payload:", payload);
+
+      // Get role from JWT
+      const role = payload.role || payload.roles;
+
+      console.log("Logged in role:", role);
+
+      // Redirect according to role
+      if (role === "AGENT" || role === "ROLE_AGENT") {
+        navigate("/agent/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+
     } catch (error) {
       console.error("Login failed:", error);
 
-      setError("Login failed. Please check your email and password.");
+      setError(
+        "Login failed. Please check your email and password."
+      );
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,12 @@ const AgentTickets = () => {
   useEffect(() => {
     const loadTickets = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const data = await getMyAssignedTickets();
+
+        console.log("Agent assigned tickets:", data);
 
         setTickets(data);
       } catch (error) {
@@ -34,7 +39,7 @@ const AgentTickets = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <h1 className="text-2xl font-bold">
           Loading assigned tickets...
         </h1>
@@ -42,38 +47,43 @@ const AgentTickets = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="rounded-lg bg-red-100 p-5 text-red-700">
-            {error}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">
-            My Assigned Tickets
-          </h1>
+        <div className="mb-6 flex items-center justify-between">
 
-          <p className="mt-1 text-gray-500">
-            Tickets assigned to you
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold">
+              My Assigned Tickets
+            </h1>
+
+            <p className="mt-1 text-gray-500">
+              Tickets assigned to you
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/agent/dashboard")}
+            className="rounded-lg border bg-white px-5 py-3 font-medium hover:bg-gray-50"
+          >
+            ← Dashboard
+          </button>
+
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Count */}
         <div className="mb-6 rounded-xl bg-white p-6 shadow">
           <p className="text-sm text-gray-500">
-            Assigned Tickets
+            Total Assigned Tickets
           </p>
 
           <p className="mt-1 text-3xl font-bold">
@@ -81,7 +91,7 @@ const AgentTickets = () => {
           </p>
         </div>
 
-        {/* Empty */}
+        {/* No Tickets */}
         {tickets.length === 0 ? (
           <div className="rounded-xl bg-white p-8 text-center shadow">
             <p className="text-gray-500">
@@ -89,6 +99,8 @@ const AgentTickets = () => {
             </p>
           </div>
         ) : (
+
+          /* Tickets Table */
           <div className="overflow-hidden rounded-xl bg-white shadow">
 
             <table className="w-full">
@@ -123,6 +135,7 @@ const AgentTickets = () => {
                     key={ticket.id}
                     className="border-t hover:bg-gray-50"
                   >
+
                     <td className="p-4 font-medium">
                       {ticket.subject || "No subject"}
                     </td>
@@ -146,9 +159,10 @@ const AgentTickets = () => {
                         }
                         className="rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700"
                       >
-                        View
+                        View Details
                       </button>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
@@ -159,7 +173,6 @@ const AgentTickets = () => {
         )}
 
       </div>
-
     </div>
   );
 };
