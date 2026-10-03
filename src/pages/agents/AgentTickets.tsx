@@ -10,6 +10,8 @@ const AgentTickets = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     const loadTickets = async () => {
@@ -37,6 +39,22 @@ const AgentTickets = () => {
     loadTickets();
   }, []);
 
+  const filteredTickets = tickets.filter((ticket) => {
+    const searchText = search.toLowerCase().trim();
+  
+    const matchesSearch =
+      !searchText ||
+      ticket.subject.toLowerCase().includes(searchText) ||
+      ticket.customerName.toLowerCase().includes(searchText) ||
+      ticket.customerEmail.toLowerCase().includes(searchText);
+  
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      ticket.status === statusFilter;
+  
+    return matchesSearch && matchesStatus;
+  });
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -51,7 +69,6 @@ const AgentTickets = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-7xl">
 
-        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
 
           <div>
@@ -73,26 +90,61 @@ const AgentTickets = () => {
 
         </div>
 
-        {/* Error */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
             {error}
           </div>
         )}
 
-        {/* Count */}
         <div className="mb-6 rounded-xl bg-white p-6 shadow">
-          <p className="text-sm text-gray-500">
-            Total Assigned Tickets
-          </p>
-
-          <p className="mt-1 text-3xl font-bold">
-            {tickets.length}
-          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Assigned Tickets
+              </p>
+        
+              <p className="mt-1 text-3xl font-bold">
+                {tickets.length}
+              </p>
+            </div>
+        
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Search Tickets
+              </label>
+        
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search subject, customer or email..."
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-purple-600"
+              />
+            </div>
+        
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Filter by Status
+              </label>
+        
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-purple-600"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+            </div>
+        
+          </div>
         </div>
 
-        {/* No Tickets */}
-        {tickets.length === 0 ? (
+        {filteredTickets.length === 0 ? (
           <div className="rounded-xl bg-white p-8 text-center shadow">
             <p className="text-gray-500">
               No tickets are currently assigned to you.
@@ -100,7 +152,6 @@ const AgentTickets = () => {
           </div>
         ) : (
 
-          /* Tickets Table */
           <div className="overflow-hidden rounded-xl bg-white shadow">
 
             <table className="w-full">
@@ -130,7 +181,7 @@ const AgentTickets = () => {
               </thead>
 
               <tbody>
-                {tickets.map((ticket) => (
+                {filteredTickets.map((ticket) => (
                   <tr
                     key={ticket.id}
                     className="border-t hover:bg-gray-50"
