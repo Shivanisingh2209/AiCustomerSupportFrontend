@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getMyAssignedTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
-import AgentNavbar from "../../components/layout/AgentNavbar";
+import AgentNavbar from "../../components/AgentNavbar";
 
 const AgentTickets = () => {
   const navigate = useNavigate();

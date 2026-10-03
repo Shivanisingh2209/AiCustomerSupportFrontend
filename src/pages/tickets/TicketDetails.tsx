@@ -13,7 +13,7 @@ import {
 import type { Ticket } from "../../types/ticket";
 import type { TicketMessage } from "../../types/ticketMessage";
 import { updateTicketStatus } from "../../services/ticketService";
-import AgentNavbar from "../../components/layout/AgentNavbar";
+import AgentNavbar from "../../components/AgentNavbar";
 
 const TicketDetails = () => {
   const { id } = useParams<{ id: string }>();
