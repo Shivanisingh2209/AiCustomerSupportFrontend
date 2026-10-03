@@ -2,7 +2,7 @@ export interface TicketMessage {
   id: string;
   ticketId: string;
   senderId: string;
-  senderType: "CUSTOMER" | "AGENT";
+  senderRole: "CUSTOMER" | "AGENT";
   message: string;
   createdAt: string;
 }

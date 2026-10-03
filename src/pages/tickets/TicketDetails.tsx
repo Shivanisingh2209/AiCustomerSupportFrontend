@@ -63,7 +63,10 @@ const TicketDetails = () => {
 
         const data = await getTicketMessages(id);
 
-        console.log("Ticket messages:", data);
+        console.log(
+  "FULL MESSAGE RESPONSE:",
+  JSON.stringify(data, null, 2)
+);
 
         setMessages(data);
       } catch (error) {
@@ -300,7 +303,7 @@ const TicketDetails = () => {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <span className="font-semibold">
-                        {item.senderType === "AGENT"
+                        {item.senderRole === "AGENT"
                           ? "Agent"
                           : "Customer"}
                       </span>
@@ -321,24 +324,26 @@ const TicketDetails = () => {
             )}
 
             {/* Reply */}
-            <form
-              onSubmit={handleSendMessage}
-              className="mt-6"
-            >
-              <label className="mb-2 block font-medium">
-                Reply
-              </label>
+            <form onSubmit={handleSendMessage} className="mt-6">
 
+              <label className="mb-2 block font-medium">
+                Reply to Customer
+              </label>
+            
               <textarea
                 value={message}
-                onChange={(e) =>
-                  setMessage(e.target.value)
-                }
-                placeholder="Type your reply..."
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your reply to the customer..."
                 rows={4}
                 className="w-full rounded-lg border px-4 py-3 outline-none focus:border-purple-600"
               />
-
+            
+              {sendError && (
+                <div className="mt-3 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+                  {sendError}
+                </div>
+              )}
+            
               <div className="mt-3 flex justify-end">
                 <button
                   type="submit"
@@ -348,6 +353,7 @@ const TicketDetails = () => {
                   {sending ? "Sending..." : "Send Reply"}
                 </button>
               </div>
+            
             </form>
 
           </div>
