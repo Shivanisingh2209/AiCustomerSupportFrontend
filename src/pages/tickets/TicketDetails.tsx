@@ -6,6 +6,8 @@ import api from "../../services/api";
 import {
   getTicketMessages,
   sendTicketMessage,
+  updateTicketMessage,
+  deleteTicketMessage,
 } from "../../services/ticketMessageService";
 
 import type { Ticket } from "../../types/ticket";
@@ -19,6 +21,8 @@ const TicketDetails = () => {
   const [messages, setMessages] = useState<TicketMessage[]>([]);
 
   const [message, setMessage] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
@@ -79,6 +83,92 @@ const TicketDetails = () => {
 
     loadMessages();
   }, [id]);
+
+  const handleEditMessage = async (
+  messageId: string
+) => {
+  if (!id || !editingText.trim()) {
+    return;
+  }
+
+  try {
+    const updatedMessage = await updateTicketMessage(
+      id,
+      messageId,
+      editingText.trim()
+    );
+
+    setMessages((previousMessages) =>
+      previousMessages.map((item) =>
+        item.id === messageId
+          ? updatedMessage
+          : item
+      )
+    );
+
+    setEditingMessageId(null);
+    setEditingText("");
+
+  } catch (error) {
+    console.error("Failed to edit message:", error);
+    setSendError("Failed to edit message.");
+  }
+};
+
+const handleDeleteMessage = async (
+  messageId: string
+) => {
+  if (!id) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this message?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    setSendError("");
+
+    console.log("Deleting message:", messageId);
+    console.log("Ticket ID:", id);
+
+    await deleteTicketMessage(id, messageId);
+
+    console.log("Message deleted successfully");
+
+    setMessages((previousMessages) =>
+      previousMessages.filter(
+        (item) => item.id !== messageId
+      )
+    );
+
+  } catch (error: any) {
+    console.error(
+      "DELETE MESSAGE ERROR:",
+      error
+    );
+
+    console.error(
+      "STATUS:",
+      error?.response?.status
+    );
+
+    console.error(
+      "RESPONSE:",
+      error?.response?.data
+    );
+
+    setSendError(
+      `Failed to delete message. Status: ${
+        error?.response?.status || "Unknown"
+      }`
+    );
+  }
+};
 
   const handleSendMessage = async (
     e: FormEvent<HTMLFormElement>
@@ -296,30 +386,108 @@ const TicketDetails = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-lg border bg-gray-50 p-5"
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="font-semibold">
-                        {item.senderRole === "AGENT"
-                          ? "Agent"
-                          : "Customer"}
-                      </span>
-
-                      <span className="text-xs text-gray-500">
-                        {new Date(
-                          item.createdAt
-                        ).toLocaleString()}
-                      </span>
+                {messages.map((item) => {
+                  const isAgentMessage =
+                    item.senderRole === "AGENT";
+                
+                  const isEditing =
+                    editingMessageId === item.id;
+                
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-lg border bg-gray-50 p-5"
+                    >
+                
+                      {/* Message Header */}
+                      <div className="mb-2 flex items-center justify-between">
+                
+                        <span className="font-semibold">
+                          {item.senderRole === "AGENT"
+                            ? "Agent"
+                            : "Customer"}
+                        </span>
+                
+                        <span className="text-xs text-gray-500">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                
+                      </div>
+                
+                      {/* Message */}
+                      {isEditing ? (
+                        <div>
+                
+                          <textarea
+                            value={editingText}
+                            onChange={(e) =>
+                              setEditingText(e.target.value)
+                            }
+                            rows={3}
+                            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-purple-600"
+                          />
+                
+                          <div className="mt-3 flex gap-2">
+                
+                            <button
+                              onClick={() =>
+                                handleEditMessage(item.id)
+                              }
+                              disabled={!editingText.trim()}
+                              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                            >
+                              Save
+                            </button>
+                
+                            <button
+                              onClick={() => {
+                                setEditingMessageId(null);
+                                setEditingText("");
+                              }}
+                              className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                            >
+                              Cancel
+                            </button>
+                
+                          </div>
+                
+                        </div>
+                      ) : (
+                        <p className="text-gray-700">
+                          {item.message}
+                        </p>
+                      )}
+                
+                      {/* Agent Actions */}
+                      {isAgentMessage && !isEditing && (
+                        <div className="mt-4 flex gap-2">
+                
+                          <button
+                            onClick={() => {
+                              setEditingMessageId(item.id);
+                              setEditingText(item.message);
+                              setSendError("");
+                            }}
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium hover:bg-gray-50"
+                          >
+                            Edit
+                          </button>
+                
+                          <button
+                            onClick={() =>
+                              handleDeleteMessage(item.id)
+                            }
+                            className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                          >
+                            Delete
+                          </button>
+                
+                        </div>
+                      )}
+                
                     </div>
-
-                    <p className="text-gray-700">
-                      {item.message}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

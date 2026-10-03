@@ -24,3 +24,27 @@ export const sendTicketMessage = async (
 
   return response.data;
 };
+
+export const updateTicketMessage = async (
+  ticketId: string,
+  messageId: string,
+  message: string
+): Promise<TicketMessage> => {
+  const response = await api.put<TicketMessage>(
+    `/tickets/${ticketId}/messages/${messageId}`,
+    {
+      message,
+    }
+  );
+
+  return response.data;
+};
+
+export const deleteTicketMessage = async (
+  ticketId: string,
+  messageId: string
+): Promise<void> => {
+  await api.delete(
+    `/tickets/${ticketId}/messages/${messageId}`
+  );
+};
