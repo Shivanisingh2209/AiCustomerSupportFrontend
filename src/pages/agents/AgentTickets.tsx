@@ -152,7 +152,7 @@ const AgentTickets = () => {
           </div>
         ) : (
 
-          <div className="overflow-hidden rounded-xl bg-white shadow">
+          <div className="overflow-x-auto rounded-xl bg-white shadow">
 
             <table className="w-full">
 
@@ -172,6 +172,10 @@ const AgentTickets = () => {
 
                   <th className="p-4 text-left">
                     Status
+                  </th>
+
+                  <th className="p-4 text-left">
+                    Created
                   </th>
 
                   <th className="p-4 text-left">
@@ -235,12 +239,18 @@ const AgentTickets = () => {
                       </span>
                     </td>
 
+                    <td className="p-4 text-sm text-gray-600">
+                      {ticket.createdAt
+                        ? new Date(ticket.createdAt).toLocaleString()
+                        : "-"}
+                    </td>
+
                     <td className="p-4">
                       <button
                         onClick={() =>
                           navigate(`/tickets/${ticket.id}`)
                         }
-                        className="rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700"
+                        className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
                       >
                         View Details
                       </button>
