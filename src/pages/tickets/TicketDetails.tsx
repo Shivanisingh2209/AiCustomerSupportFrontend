@@ -12,6 +12,7 @@ import {
 
 import type { Ticket } from "../../types/ticket";
 import type { TicketMessage } from "../../types/ticketMessage";
+import { updateTicketStatus } from "../../services/ticketService";
 
 const TicketDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,8 @@ const TicketDetails = () => {
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusError, setStatusError] = useState("");
 
   const [error, setError] = useState("");
   const [messageError, setMessageError] = useState("");
@@ -68,9 +71,9 @@ const TicketDetails = () => {
         const data = await getTicketMessages(id);
 
         console.log(
-  "FULL MESSAGE RESPONSE:",
-  JSON.stringify(data, null, 2)
-);
+          "FULL MESSAGE RESPONSE:",
+          JSON.stringify(data, null, 2)
+        );
 
         setMessages(data);
       } catch (error) {
@@ -80,95 +83,121 @@ const TicketDetails = () => {
         setMessagesLoading(false);
       }
     };
-
-    loadMessages();
+  
+  loadMessages();
   }, [id]);
-
+  
   const handleEditMessage = async (
-  messageId: string
-) => {
-  if (!id || !editingText.trim()) {
-    return;
-  }
+    messageId: string
+    ) => {
+      if (!id || !editingText.trim()) {
+        return;
+      }
+  
+    try {
+      const updatedMessage = await updateTicketMessage(
+        id,
+        messageId,
+        editingText.trim()
+      );
+  
+      setMessages((previousMessages) =>
+        previousMessages.map((item) =>
+          item.id === messageId
+            ? updatedMessage
+            : item
+        )
+      );
+  
+      setEditingMessageId(null);
+      setEditingText("");
+  
+    } catch (error) {
+      console.error("Failed to edit message:", error);
+      setSendError("Failed to edit message.");
+    }
+  };
 
-  try {
-    const updatedMessage = await updateTicketMessage(
-      id,
-      messageId,
-      editingText.trim()
+  const handleDeleteMessage = async (
+    messageId: string
+  ) => {
+    if (!id) {
+      return;
+    }
+  
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this message?"
     );
+  
+    if (!confirmed) {
+      return;
+    }
+  
+    try {
+      setSendError("");
+  
+      console.log("Deleting message:", messageId);
+      console.log("Ticket ID:", id);
+  
+      await deleteTicketMessage(id, messageId);
+  
+      console.log("Message deleted successfully");
+  
+      setMessages((previousMessages) =>
+        previousMessages.filter(
+          (item) => item.id !== messageId
+        )
+      );
+  
+    } catch (error: any) {
+      console.error(
+        "DELETE MESSAGE ERROR:",
+        error
+      );
+  
+      console.error(
+        "STATUS:",
+        error?.response?.status
+      );
+  
+      console.error(
+        "RESPONSE:",
+        error?.response?.data
+      );
+  
+      setSendError(
+        `Failed to delete message. Status: ${
+          error?.response?.status || "Unknown"
+        }`
+      );
+    }
+  };
 
-    setMessages((previousMessages) =>
-      previousMessages.map((item) =>
-        item.id === messageId
-          ? updatedMessage
-          : item
-      )
-    );
-
-    setEditingMessageId(null);
-    setEditingText("");
-
-  } catch (error) {
-    console.error("Failed to edit message:", error);
-    setSendError("Failed to edit message.");
-  }
-};
-
-const handleDeleteMessage = async (
-  messageId: string
-) => {
-  if (!id) {
-    return;
-  }
-
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this message?"
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    setSendError("");
-
-    console.log("Deleting message:", messageId);
-    console.log("Ticket ID:", id);
-
-    await deleteTicketMessage(id, messageId);
-
-    console.log("Message deleted successfully");
-
-    setMessages((previousMessages) =>
-      previousMessages.filter(
-        (item) => item.id !== messageId
-      )
-    );
-
-  } catch (error: any) {
-    console.error(
-      "DELETE MESSAGE ERROR:",
-      error
-    );
-
-    console.error(
-      "STATUS:",
-      error?.response?.status
-    );
-
-    console.error(
-      "RESPONSE:",
-      error?.response?.data
-    );
-
-    setSendError(
-      `Failed to delete message. Status: ${
-        error?.response?.status || "Unknown"
-      }`
-    );
-  }
-};
+  const handleStatusUpdate = async (
+    newStatus: string
+  ) => {
+    if (!id) {
+      return;
+    }
+  
+    try {
+      setUpdatingStatus(true);
+      setStatusError("");
+  
+      const updatedTicket = await updateTicketStatus(
+        id,
+        newStatus
+      );
+  
+      setTicket(updatedTicket);
+  
+    } catch (error) {
+      console.error("Failed to update ticket status:", error);
+      setStatusError("Failed to update ticket status.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   const handleSendMessage = async (
     e: FormEvent<HTMLFormElement>
@@ -284,10 +313,37 @@ const handleDeleteMessage = async (
               <p className="text-sm text-gray-500">
                 Status
               </p>
-
-              <p className="mt-1 font-semibold">
-                {ticket.status}
-              </p>
+            
+              <select
+                value={ticket.status}
+                onChange={(e) =>
+                  handleStatusUpdate(e.target.value)
+                }
+                disabled={updatingStatus}
+                className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-semibold outline-none focus:border-purple-600 disabled:opacity-50"
+              >
+                <option value="OPEN">
+                  OPEN
+                </option>
+            
+                <option value="IN_PROGRESS">
+                  IN_PROGRESS
+                </option>
+            
+                <option value="RESOLVED">
+                  RESOLVED
+                </option>
+            
+                <option value="CLOSED">
+                  CLOSED
+                </option>
+              </select>
+            
+              {updatingStatus && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Updating status...
+                </p>
+              )}
             </div>
 
             <div className="rounded-lg bg-gray-50 p-4">
@@ -311,6 +367,12 @@ const handleDeleteMessage = async (
             </div>
 
           </div>
+
+          {statusError && (
+            <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+              {statusError}
+            </div>
+          )}
 
           {/* Customer */}
           <div className="mb-8">

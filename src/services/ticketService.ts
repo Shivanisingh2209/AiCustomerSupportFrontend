@@ -21,3 +21,17 @@ export const getMyAssignedTickets = async (): Promise<Ticket[]> => {
 
   return response.data;
 };
+
+export const updateTicketStatus = async (
+  ticketId: string,
+  status: string
+): Promise<Ticket> => {
+  const response = await api.patch<Ticket>(
+    `/tickets/${ticketId}/status`,
+    {
+      status,
+    }
+  );
+
+  return response.data;
+};
