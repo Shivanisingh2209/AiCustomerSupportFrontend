@@ -44,8 +44,12 @@ const Login = () => {
 
       console.log("Logged in role:", role);
 
-      // Redirect according to role
-      if (role === "AGENT" || role === "ROLE_AGENT") {
+      if (role === "ADMIN" || role === "ROLE_ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (
+        role === "AGENT" ||
+        role === "ROLE_AGENT"
+      ) {
         navigate("/agent/dashboard");
       } else {
         navigate("/dashboard");

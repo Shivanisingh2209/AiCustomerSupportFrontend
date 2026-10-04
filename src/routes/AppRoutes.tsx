@@ -8,6 +8,7 @@ import TicketDetails from "../pages/tickets/TicketDetails";
 import AgentTickets from "../pages/agents/AgentTickets";
 import AgentDashboard from "../pages/agents/AgentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 
 const Home = () => {
   return (
@@ -74,6 +75,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["AGENT"]}>
               <AgentTickets />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
