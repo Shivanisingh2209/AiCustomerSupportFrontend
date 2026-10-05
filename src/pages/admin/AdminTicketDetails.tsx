@@ -5,7 +5,7 @@ import api from "../../services/api";
 import type { Ticket } from "../../types/ticket";
 import type { Agent } from "../../types/agent";
 import { getAgents } from "../../services/agentService";
-import { assignTicketToAgent } from "../../services/ticketService";
+import { assignTicketToAgent, updateTicketStatus } from "../../services/ticketService";
 import type { TicketMessage } from "../../types/ticketMessage";
 import { getTicketMessages } from "../../services/ticketMessageService";
 
@@ -19,6 +19,7 @@ const AdminTicketDetails = () => {
   const [selectedAgent, setSelectedAgent] = useState("");
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 
@@ -83,6 +84,31 @@ const AdminTicketDetails = () => {
       setError("Failed to assign ticket to agent.");
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleStatusChange = async (
+    newStatus: string
+  ) => {
+    if (!id) return;
+  
+    try {
+      setUpdatingStatus(true);
+      setError("");
+      setSuccess("");
+  
+      const updatedTicket = await updateTicketStatus(
+        id,
+        newStatus
+      );
+  
+      setTicket(updatedTicket);
+      setSuccess("Ticket status updated successfully.");
+    } catch (error) {
+      console.error("Failed to update ticket status:", error);
+      setError("Failed to update ticket status.");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -278,9 +304,19 @@ const AdminTicketDetails = () => {
                     Status
                   </p>
 
-                  <span className="mt-1 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
-                    {ticket.status || "-"}
-                  </span>
+                  <select
+                    value={ticket.status || ""}
+                    onChange={(e) =>
+                      handleStatusChange(e.target.value)
+                    }
+                    disabled={updatingStatus}
+                    className="mt-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-purple-600 disabled:opacity-50"
+                  >
+                    <option value="OPEN">OPEN</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="RESOLVED">RESOLVED</option>
+                    <option value="CLOSED">CLOSED</option>
+                  </select>
                 </div>
 
                 <div>
