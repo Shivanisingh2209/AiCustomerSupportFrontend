@@ -6,6 +6,8 @@ import type { Ticket } from "../../types/ticket";
 import type { Agent } from "../../types/agent";
 import { getAgents } from "../../services/agentService";
 import { assignTicketToAgent } from "../../services/ticketService";
+import type { TicketMessage } from "../../types/ticketMessage";
+import { getTicketMessages } from "../../services/ticketMessageService";
 
 const AdminTicketDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,8 @@ const AdminTicketDetails = () => {
   const [selectedAgent, setSelectedAgent] = useState("");
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -29,13 +33,17 @@ const AdminTicketDetails = () => {
         setLoading(true);
         setError("");
 
-        const [ticketResponse, agentsData] = await Promise.all([
+        const [ticketResponse, agentsData, messagesData] =
+        await Promise.all([
           api.get<Ticket>(`/tickets/${id}`),
           getAgents(),
+          getTicketMessages(id),
         ]);
 
         setTicket(ticketResponse.data);
         setAgents(agentsData);
+        setMessages(messagesData);
+        setMessagesLoading(false);
 
         if (ticketResponse.data.agentId) {
           setSelectedAgent(ticketResponse.data.agentId);
@@ -45,6 +53,7 @@ const AdminTicketDetails = () => {
         setError("Failed to load ticket details.");
       } finally {
         setLoading(false);
+        setMessagesLoading(false);
       }
     };
 
@@ -391,6 +400,60 @@ const AdminTicketDetails = () => {
               </div>
 
             </div>
+          </div>
+
+          {/* Conversation */}
+          <div className="mt-6 rounded-xl bg-white p-6 shadow">
+          
+            <h3 className="text-xl font-semibold">
+              Conversation
+            </h3>
+          
+            {messagesLoading ? (
+              <p className="mt-4 text-sm text-gray-500">
+                Loading conversation...
+              </p>
+            ) : messages.length === 0 ? (
+              <p className="mt-4 text-sm text-gray-500">
+                No messages yet.
+              </p>
+            ) : (
+              <div className="mt-4 space-y-4">
+          
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`rounded-lg p-4 ${
+                      message.senderRole === "AGENT"
+                        ? "ml-8 bg-purple-50"
+                        : "mr-8 bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">
+                        {message.senderRole === "AGENT"
+                          ? "Agent"
+                          : "Customer"}
+                      </p>
+          
+                      <p className="text-xs text-gray-500">
+                        {message.createdAt
+                          ? new Date(
+                              message.createdAt
+                            ).toLocaleString()
+                          : ""}
+                      </p>
+                    </div>
+          
+                    <p className="mt-2 whitespace-pre-wrap text-gray-700">
+                      {message.message}
+                    </p>
+                  </div>
+                ))}
+          
+              </div>
+            )}
+          
           </div>
 
         </div>
