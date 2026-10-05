@@ -150,10 +150,10 @@ const AdminLogin = () => {
         {/* Back to normal login */}
         <div className="mt-6 text-center">
           <Link
-            to="/login"
+            to="/"
             className="text-sm font-semibold text-purple-600 hover:text-purple-700"
           >
-            ← Back to Customer / Agent Login
+            ← Back to Home
           </Link>
         </div>
 
