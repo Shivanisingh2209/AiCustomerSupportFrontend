@@ -9,6 +9,8 @@ import AgentTickets from "../pages/agents/AgentTickets";
 import AgentDashboard from "../pages/agents/AgentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminTicketDetails from "../pages/admin/AdminTicketDetails";
+import AdminTickets from "../pages/admin/AdminTickets";
 
 const Home = () => {
   return (
@@ -84,6 +86,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/tickets"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminTickets />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin/tickets/:id"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminTicketDetails />
             </ProtectedRoute>
           }
         />

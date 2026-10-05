@@ -334,7 +334,8 @@ const AdminTickets = () => {
 
                     <tr
                       key={ticket.id}
-                      className="border-t hover:bg-gray-50"
+                      onClick={() => navigate(`/admin/tickets/${ticket.id}`)}
+                      className="cursor-pointer border-t hover:bg-gray-50"
                     >
 
                       <td className="p-4 font-medium">
@@ -383,7 +384,10 @@ const AdminTickets = () => {
                         </span>
                       </td>
 
-                      <td className="p-4">
+                      <td
+                        className="p-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex min-w-[220px] flex-col gap-2">
                       
                           {ticket.agentId && (
@@ -400,31 +404,24 @@ const AdminTickets = () => {
                                 [ticket.id]: e.target.value,
                               }))
                             }
-                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-purple-600"
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
                           >
-                            <option value="">
-                              Select Agent
-                            </option>
+                            <option value="">Select Agent</option>
                       
                             {agents.map((agent) => (
-                              <option
-                                key={agent.id}
-                                value={agent.id}
-                              >
+                              <option key={agent.id} value={agent.id}>
                                 {agent.name} ({agent.status})
                               </option>
                             ))}
                           </select>
                       
                           <button
-                            onClick={() =>
-                              handleAssignAgent(ticket.id)
-                            }
+                            onClick={() => handleAssignAgent(ticket.id)}
                             disabled={
                               assigningTicketId === ticket.id ||
                               !selectedAgents[ticket.id]
                             }
-                            className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
                           >
                             {assigningTicketId === ticket.id
                               ? "Assigning..."
