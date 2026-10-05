@@ -14,6 +14,7 @@ import RegisterAgent from "../pages/admin/RegisterAgent";
 import CustomerRegister from "../pages/auth/CustomerRegister";
 import AdminLogin from "../pages/auth/AdminLogin";
 import CustomerLogin from "../pages/auth/CustomerLogin";
+import AgentLogin from "../pages/auth/AgentLogin";
 
 const Home = () => {
   return (
@@ -34,6 +35,16 @@ const AppRoutes = () => {
         <Route
           path="/customer/login"
           element={<CustomerLogin />}
+        />
+        
+        <Route
+          path="/agent/login"
+          element={<AgentLogin />}
+        />
+        
+        <Route
+          path="/admin/login"
+          element={<AdminLogin />}
         />
         <Route
           path="/dashboard"

@@ -37,12 +37,12 @@ const AdminDashboard = () => {
         console.log("Admin ticket stats:", response.data);
 
         setStats({
-  total: response.data.total || 0,
-  open: response.data.open || 0,
-  inProgress: response.data.inProgress || 0,
-  resolved: response.data.resolved || 0,
-  closed: response.data.closed || 0,
-});
+          total: response.data.total || 0,
+          open: response.data.open || 0,
+          inProgress: response.data.inProgress || 0,
+          resolved: response.data.resolved || 0,
+          closed: response.data.closed || 0,
+        });
       } catch (error) {
         console.error("Failed to load ticket statistics:", error);
         setError("Failed to load ticket statistics.");
@@ -60,7 +60,7 @@ const AdminDashboard = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
 
-    navigate("/login");
+    navigate("/admin/login");
   };
 
   if (loading) {
@@ -107,6 +107,13 @@ const AdminDashboard = () => {
               className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
             >
               All Tickets
+            </button>
+
+            <button
+              onClick={() => navigate("/admin/agents/create")}
+              className="rounded-lg bg-purple-600 px-5 py-3 font-semibold text-white hover:bg-purple-700"
+            >
+              Create Agent
             </button>
 
             <button

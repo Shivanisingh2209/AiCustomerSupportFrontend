@@ -13,7 +13,7 @@ const ProtectedRoute = ({
   const token = localStorage.getItem("token");
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (!allowedRoles || allowedRoles.length === 0) {
@@ -39,8 +39,9 @@ const ProtectedRoute = ({
         )
       : allowedRoles.includes(normalizedRole);
 
+    // User has token but wrong role
     if (!hasAccess) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/" replace />;
     }
 
     return <>{children}</>;
@@ -51,7 +52,7 @@ const ProtectedRoute = ({
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
 
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 };
 

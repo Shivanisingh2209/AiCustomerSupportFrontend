@@ -8,7 +8,7 @@ const AgentNavbar = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
 
-    navigate("/login");
+    navigate("/agent/login");;
   };
 
   return (

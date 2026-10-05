@@ -195,7 +195,7 @@ const CreateAgent = () => {
           <p className="text-sm text-gray-600">
             Already have an Agent account?{" "}
             <Link
-              to="/login"
+              to="/agent/login"
               className="font-semibold text-purple-600 hover:text-purple-700"
             >
               Agent Login
