@@ -1,13 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginUser, loginAgent } from "../../services/authService";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../../services/authService";
 import { Eye, EyeOff } from "lucide-react";
 
 const CustomerLogin = () => {
   const navigate = useNavigate();
-
-  const [role, setRole] = useState<"USER" | "AGENT">("USER");
+  
   const [showPassword, setShowPassword] = useState(false);
 
   const [email, setEmail] = useState("");
@@ -22,41 +21,55 @@ const CustomerLogin = () => {
     setLoading(true);
     setError("");
 
-      try {
-        const credentials = { email, password };
-  
-        const token =
-          role === "AGENT"
-            ? await loginAgent(credentials)
-            : await loginUser(credentials);
-  
-        console.log("Login response:", token);
-  
-        // Save JWT token
-        localStorage.setItem("token", token);
-  
-        // Save logged-in email
-        localStorage.setItem("userEmail", email);
-  
-        // Read JWT payload
-        const payload = JSON.parse(atob(token.split(".")[1]));
-  
-        console.log("JWT Payload:", payload);
-  
-        // Get role from JWT (renamed so it doesn't shadow the state)
-        const jwtRole = payload.role || payload.roles;
-  
-        console.log("Logged in role:", jwtRole);
-  
-        if (jwtRole === "ADMIN" || jwtRole === "ROLE_ADMIN") {
-          navigate("/admin/dashboard");
-        } else if (jwtRole === "AGENT" || jwtRole === "ROLE_AGENT") {
-          navigate("/agent/dashboard");
-        } else {
-          navigate("/dashboard");
-        }
-      } catch (error: any) {
-      console.error("Login failed:", error.response?.status, error.response?.data);
+    try {
+      const credentials = {
+        email,
+        password,
+      };
+
+      const token = await loginUser(credentials);
+
+      console.log("Login response:", token);
+
+      // Read JWT payload
+      const payload = JSON.parse(
+        atob(token.split(".")[1])
+      );
+
+      console.log("JWT Payload:", payload);
+
+      const jwtRole = payload.role || payload.roles;
+
+      console.log("Logged in role:", jwtRole);
+
+      const normalizedRole =
+        typeof jwtRole === "string"
+          ? jwtRole.replace("ROLE_", "")
+          : jwtRole;
+
+      // Customer login is only for USER
+      if (normalizedRole !== "USER") {
+        setError(
+          "Access denied. This login is only for customers."
+        );
+        return;
+      }
+
+      // Save JWT token
+      localStorage.setItem("token", token);
+
+      // Save logged-in email
+      localStorage.setItem("userEmail", email);
+
+      // Go to customer dashboard
+      navigate("/dashboard");
+
+    } catch (error: any) {
+      console.error(
+        "Customer login failed:",
+        error.response?.status,
+        error.response?.data
+      );
 
       setError(
         error.response?.data?.message ||
@@ -76,8 +89,12 @@ const CustomerLogin = () => {
             AI Customer Support
           </h1>
 
-          <p className="mt-2 text-gray-500">
-            Login to your account
+          <h2 className="mt-4 text-2xl font-bold text-gray-900">
+            Customer Login
+          </h2>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Login to manage your support tickets
           </p>
         </div>
 
@@ -89,21 +106,7 @@ const CustomerLogin = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Login as
-            </label>
-
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "USER" | "AGENT")}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-purple-600"
-            >
-              <option value="USER">Customer</option>
-              <option value="AGENT">Agent</option>
-            </select>
-          </div>
-
+          {/* Email */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Email
@@ -119,11 +122,12 @@ const CustomerLogin = () => {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Password
             </label>
-          
+
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -133,33 +137,48 @@ const CustomerLogin = () => {
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-16 outline-none focus:border-purple-600"
                 required
               />
-          
+
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 px-4 text-sm font-medium text-purple-600 hover:text-purple-800"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() =>
+                  setShowPassword((prev) => !prev)
+                }
+                className="absolute inset-y-0 right-0 px-4 text-purple-600 hover:text-purple-800"
+                aria-label={
+                  showPassword
+                    ? "Hide password"
+                    : "Show password"
+                }
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
               </button>
             </div>
           </div>
 
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded-lg bg-purple-600 py-3 font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Logging in..." : "Customer Login"}
           </button>
 
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Don't have an account?
-          <span className="ml-1 cursor-pointer text-purple-600">
-            Register
-          </span>
+        {/* Register */}
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Link
+            to="/customer/register"
+            className="font-semibold text-purple-600 hover:text-purple-700"
+          >
+            Create Customer Account
+          </Link>
         </p>
 
       </div>
