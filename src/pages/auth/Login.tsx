@@ -1,10 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../../services/authService";
+import { loginUser, loginAgent } from "../../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
+
+  const [role, setRole] = useState<"USER" | "AGENT">("USER");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,48 +20,45 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    try {
-      const token = await loginUser({
-        email,
-        password,
-      });
-
-      console.log("Login response:", token);
-
-      // Save JWT token
-      localStorage.setItem("token", token);
-
-      // Save logged-in email
-      localStorage.setItem("userEmail", email);
-
-      // Read JWT payload
-      const payload = JSON.parse(
-        atob(token.split(".")[1])
-      );
-
-      console.log("JWT Payload:", payload);
-
-      // Get role from JWT
-      const role = payload.role || payload.roles;
-
-      console.log("Logged in role:", role);
-
-      if (role === "ADMIN" || role === "ROLE_ADMIN") {
-        navigate("/admin/dashboard");
-      } else if (
-        role === "AGENT" ||
-        role === "ROLE_AGENT"
-      ) {
-        navigate("/agent/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-
-    } catch (error) {
-      console.error("Login failed:", error);
+      try {
+        const credentials = { email, password };
+  
+        const token =
+          role === "AGENT"
+            ? await loginAgent(credentials)
+            : await loginUser(credentials);
+  
+        console.log("Login response:", token);
+  
+        // Save JWT token
+        localStorage.setItem("token", token);
+  
+        // Save logged-in email
+        localStorage.setItem("userEmail", email);
+  
+        // Read JWT payload
+        const payload = JSON.parse(atob(token.split(".")[1]));
+  
+        console.log("JWT Payload:", payload);
+  
+        // Get role from JWT (renamed so it doesn't shadow the state)
+        const jwtRole = payload.role || payload.roles;
+  
+        console.log("Logged in role:", jwtRole);
+  
+        if (jwtRole === "ADMIN" || jwtRole === "ROLE_ADMIN") {
+          navigate("/admin/dashboard");
+        } else if (jwtRole === "AGENT" || jwtRole === "ROLE_AGENT") {
+          navigate("/agent/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
+      } catch (error: any) {
+      console.error("Login failed:", error.response?.status, error.response?.data);
 
       setError(
-        "Login failed. Please check your email and password."
+        error.response?.data?.message ||
+          "Login failed. Please check your email and password."
       );
     } finally {
       setLoading(false);
@@ -87,6 +86,21 @@ const Login = () => {
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Login as
+            </label>
+
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "USER" | "AGENT")}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-purple-600"
+            >
+              <option value="USER">Customer</option>
+              <option value="AGENT">Agent</option>
+            </select>
+          </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">

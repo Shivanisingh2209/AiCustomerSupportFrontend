@@ -15,3 +15,8 @@ export const loginUser = async (
 
   return response.data;
 };
+
+export const loginAgent = async (data: { email: string; password: string }) => {
+  const response = await api.post("/auth/agent/login", data);
+  return response.data;
+};

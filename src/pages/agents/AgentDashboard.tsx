@@ -4,11 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { getMyAssignedTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
 import AgentNavbar from "../../components/AgentNavbar";
+import { getAgents, updateAgentStatus } from "../../services/agentService";
 
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [agentId, setAgentId] = useState("");
+  const [agentStatus, setAgentStatus] = useState("AVAILABLE");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const userEmail = localStorage.getItem("userEmail");
 
@@ -29,6 +33,54 @@ const AgentDashboard = () => {
   
     loadTickets();
   }, []);
+
+  useEffect(() => {
+    const loadAgent = async () => {
+      try {
+        const agents = await getAgents();
+  
+        const currentAgent = agents.find(
+          (agent) => agent.email === userEmail
+        );
+  
+        if (currentAgent) {
+          setAgentId(currentAgent.id);
+          setAgentStatus(currentAgent.status);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load agent:",
+          error
+        );
+      }
+    };
+  
+    loadAgent();
+  }, [userEmail]);
+
+  const handleStatusChange = async (
+    newStatus: string
+  ) => {
+    if (!agentId) return;
+  
+    try {
+      setUpdatingStatus(true);
+  
+      const updatedAgent = await updateAgentStatus(
+        agentId,
+        newStatus
+      );
+  
+      setAgentStatus(updatedAgent.status);
+    } catch (error) {
+      console.error(
+        "Failed to update agent status:",
+        error
+      );
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
   
   const openTickets = tickets.filter(
     (ticket) => ticket.status === "OPEN"
@@ -65,6 +117,29 @@ const AgentDashboard = () => {
           <p className="mt-2 text-gray-500">
             Welcome, {userEmail}
           </p>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">
+            Availability:
+          </span>
+        
+          <select
+            value={agentStatus}
+            onChange={(e) =>
+              handleStatusChange(e.target.value)
+            }
+            disabled={updatingStatus}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium outline-none focus:border-purple-600 disabled:opacity-50"
+          >
+            <option value="AVAILABLE">
+              AVAILABLE
+            </option>
+        
+            <option value="BUSY">
+              BUSY
+            </option>
+          </select>
         </div>
 
         {/* Assigned Tickets Card */}

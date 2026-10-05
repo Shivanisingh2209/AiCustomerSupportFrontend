@@ -6,3 +6,14 @@ export const getAgents = async (): Promise<Agent[]> => {
 
   return response.data;
 };
+
+export const updateAgentStatus = async (
+  agentId: string,
+  status: string
+): Promise<Agent> => {
+  const response = await api.patch<Agent>(
+    `/agents/${agentId}/status?status=${status}`
+  );
+
+  return response.data;
+};
