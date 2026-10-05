@@ -15,16 +15,7 @@ import CustomerRegister from "../pages/auth/CustomerRegister";
 import AdminLogin from "../pages/auth/AdminLogin";
 import CustomerLogin from "../pages/auth/CustomerLogin";
 import AgentLogin from "../pages/auth/AgentLogin";
-
-const Home = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-bold">
-        AI Customer Support
-      </h1>
-    </div>
-  );
-};
+import Home from "../pages/Home";
 
 const AppRoutes = () => {
   return (
@@ -125,8 +116,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-        <Route path="/admin/login" element={<AdminLogin />} />
         
         <Route
           path="/admin/tickets/:id"
