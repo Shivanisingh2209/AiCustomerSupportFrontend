@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Login from "../pages/auth/CustomerLogin";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Tickets from "../pages/tickets/Tickets";
 import CreateTicket from "../pages/tickets/CreateTicket";
@@ -14,6 +13,7 @@ import AdminTickets from "../pages/admin/AdminTickets";
 import RegisterAgent from "../pages/admin/RegisterAgent";
 import CustomerRegister from "../pages/auth/CustomerRegister";
 import AdminLogin from "../pages/auth/AdminLogin";
+import CustomerLogin from "../pages/auth/CustomerLogin";
 
 const Home = () => {
   return (
@@ -31,7 +31,10 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/customer/register" element={<CustomerRegister />} />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/customer/login"
+          element={<CustomerLogin />}
+        />
         <Route
           path="/dashboard"
           element={

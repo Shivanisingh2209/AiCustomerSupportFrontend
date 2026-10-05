@@ -166,7 +166,7 @@ const CustomerRegister = () => {
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
           <Link
-            to="/login"
+            to="/customer/login"
             className="font-semibold text-purple-600 hover:text-purple-700"
           >
             Customer Login
