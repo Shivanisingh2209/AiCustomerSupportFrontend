@@ -2,11 +2,13 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser, loginAgent } from "../../services/authService";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
 
   const [role, setRole] = useState<"USER" | "AGENT">("USER");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -121,15 +123,26 @@ const Login = () => {
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Password
             </label>
-
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-purple-600"
-              required
-            />
+          
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-16 outline-none focus:border-purple-600"
+                required
+              />
+          
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 px-4 text-sm font-medium text-purple-600 hover:text-purple-800"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <button

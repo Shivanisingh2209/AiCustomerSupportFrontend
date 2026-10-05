@@ -11,6 +11,9 @@ import ProtectedRoute from "./ProtectedRoute";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminTicketDetails from "../pages/admin/AdminTicketDetails";
 import AdminTickets from "../pages/admin/AdminTickets";
+import RegisterAgent from "../pages/admin/RegisterAgent";
+import CustomerRegister from "../pages/auth/CustomerRegister";
+import AdminLogin from "../pages/auth/AdminLogin";
 
 const Home = () => {
   return (
@@ -27,6 +30,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/customer/register" element={<CustomerRegister />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/dashboard"
@@ -91,6 +95,15 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="/admin/agents/create"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <RegisterAgent />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin/tickets"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
@@ -98,6 +111,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
         
         <Route
           path="/admin/tickets/:id"
