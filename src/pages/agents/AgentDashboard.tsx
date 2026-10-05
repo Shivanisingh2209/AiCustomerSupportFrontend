@@ -80,7 +80,10 @@ const AgentDashboard = () => {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         
               {/* Total */}
-              <div className="rounded-xl bg-white p-6 shadow">
+              <div
+                onClick={() => navigate("/agent/tickets")}
+                className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+              >
                 <p className="text-sm font-medium text-gray-500">
                   Total Assigned
                 </p>
@@ -91,7 +94,10 @@ const AgentDashboard = () => {
               </div>
         
               {/* Open */}
-              <div className="rounded-xl bg-white p-6 shadow">
+              <div
+                onClick={() => navigate("/agent/tickets?status=OPEN")}
+                className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+              >
                 <p className="text-sm font-medium text-gray-500">
                   Open
                 </p>
@@ -102,7 +108,10 @@ const AgentDashboard = () => {
               </div>
         
               {/* In Progress */}
-              <div className="rounded-xl bg-white p-6 shadow">
+              <div
+                onClick={() => navigate("/agent/tickets?status=IN_PROGRESS")}
+                className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+              >
                 <p className="text-sm font-medium text-gray-500">
                   In Progress
                 </p>
@@ -113,7 +122,10 @@ const AgentDashboard = () => {
               </div>
         
               {/* Resolved */}
-              <div className="rounded-xl bg-white p-6 shadow">
+              <div
+                onClick={() => navigate("/agent/tickets?status=RESOLVED")}
+                className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+              >
                 <p className="text-sm font-medium text-gray-500">
                   Resolved
                 </p>
@@ -123,7 +135,10 @@ const AgentDashboard = () => {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-white p-6 shadow">
+              <div
+                onClick={() => navigate("/agent/tickets?status=CLOSED")}
+                className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+              >
                 <p className="text-sm font-medium text-gray-500">
                   Closed
                 </p>
