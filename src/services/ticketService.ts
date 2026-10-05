@@ -35,3 +35,14 @@ export const updateTicketStatus = async (
 
   return response.data;
 };
+
+export const assignTicketToAgent = async (
+  ticketId: string,
+  agentId: string
+): Promise<Ticket> => {
+  const response = await api.patch<Ticket>(
+    `/tickets/${ticketId}/assign/${agentId}`
+  );
+
+  return response.data;
+};

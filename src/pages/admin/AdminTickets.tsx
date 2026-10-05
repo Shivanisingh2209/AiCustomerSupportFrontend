@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getTickets } from "../../services/ticketService";
+import { assignTicketToAgent, getTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
+import type { Agent } from "../../types/agent";
+import { getAgents } from "../../services/agentService";
 
 const AdminTickets = () => {
   const navigate = useNavigate();
+
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgents, setSelectedAgents] = useState<
+    Record<string, string>
+  >({});
+  const [assigningTicketId, setAssigningTicketId] = useState<string | null>(
+    null
+  );
+  const [assignmentError, setAssignmentError] = useState("");
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +47,23 @@ const AdminTickets = () => {
     loadTickets();
   }, []);
 
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const data = await getAgents();
+  
+        console.log("Available agents:", data);
+  
+        setAgents(data);
+      } catch (error) {
+        console.error("Failed to load agents:", error);
+        setAssignmentError("Failed to load agents.");
+      }
+    };
+  
+    loadAgents();
+  }, []);
+
   const filteredTickets = tickets.filter((ticket) => {
     const searchText = search.toLowerCase().trim();
 
@@ -51,6 +79,44 @@ const AdminTickets = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+    const handleAssignAgent = async (ticketId: string) => {
+      const agentId = selectedAgents[ticketId];
+    
+      if (!agentId) {
+        setAssignmentError("Please select an agent.");
+        return;
+      }
+    
+      try {
+        setAssigningTicketId(ticketId);
+        setAssignmentError("");
+    
+        const updatedTicket = await assignTicketToAgent(
+          ticketId,
+          agentId
+        );
+    
+        setTickets((previousTickets) =>
+          previousTickets.map((ticket) =>
+            ticket.id === ticketId
+              ? updatedTicket
+              : ticket
+          )
+        );
+    
+        setSelectedAgents((previous) => ({
+          ...previous,
+          [ticketId]: "",
+        }));
+    
+      } catch (error) {
+        console.error("Failed to assign agent:", error);
+        setAssignmentError("Failed to assign ticket to agent.");
+      } finally {
+        setAssigningTicketId(null);
+      }
+    };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -208,7 +274,12 @@ const AdminTickets = () => {
             </div>
           </div>
 
-          {/* Tickets */}
+          {assignmentError && (
+            <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+              {assignmentError}
+            </div>
+          )}
+
           {filteredTickets.length === 0 ? (
 
             <div className="rounded-xl bg-white p-8 text-center shadow">
@@ -313,15 +384,54 @@ const AdminTickets = () => {
                       </td>
 
                       <td className="p-4">
-                        {ticket.agentId ? (
-                          <span className="text-sm font-medium text-green-700">
-                            Assigned
-                          </span>
-                        ) : (
-                          <span className="text-sm font-medium text-red-600">
-                            Unassigned
-                          </span>
-                        )}
+                        <div className="flex min-w-[220px] flex-col gap-2">
+                      
+                          {ticket.agentId && (
+                            <span className="text-sm font-medium text-green-700">
+                              Currently Assigned
+                            </span>
+                          )}
+                      
+                          <select
+                            value={selectedAgents[ticket.id] || ""}
+                            onChange={(e) =>
+                              setSelectedAgents((previous) => ({
+                                ...previous,
+                                [ticket.id]: e.target.value,
+                              }))
+                            }
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-purple-600"
+                          >
+                            <option value="">
+                              Select Agent
+                            </option>
+                      
+                            {agents.map((agent) => (
+                              <option
+                                key={agent.id}
+                                value={agent.id}
+                              >
+                                {agent.name} ({agent.status})
+                              </option>
+                            ))}
+                          </select>
+                      
+                          <button
+                            onClick={() =>
+                              handleAssignAgent(ticket.id)
+                            }
+                            disabled={
+                              assigningTicketId === ticket.id ||
+                              !selectedAgents[ticket.id]
+                            }
+                            className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {assigningTicketId === ticket.id
+                              ? "Assigning..."
+                              : "Assign Agent"}
+                          </button>
+                      
+                        </div>
                       </td>
 
                       <td className="p-4 text-sm text-gray-600">
