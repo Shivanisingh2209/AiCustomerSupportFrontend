@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
 const CreateAgent = () => {
@@ -191,6 +191,26 @@ const CreateAgent = () => {
               {loading ? "Creating Agent..." : "Create Agent"}
             </button>
           </form>
+
+          <p className="text-sm text-gray-600">
+            Already have an Agent account?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-purple-600 hover:text-purple-700"
+            >
+              Agent Login
+            </Link>
+          </p>
+
+          <p className="text-sm text-gray-600">
+            Are you an Admin?{" "}
+            <Link
+              to="/admin/login"
+              className="font-semibold text-purple-600 hover:text-purple-700"
+            >
+              Admin Login
+            </Link>
+          </p>
         </div>
       </main>
     </div>

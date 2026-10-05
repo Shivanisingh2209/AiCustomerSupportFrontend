@@ -169,7 +169,7 @@ const CustomerRegister = () => {
             to="/login"
             className="font-semibold text-purple-600 hover:text-purple-700"
           >
-            Login
+            Customer Login
           </Link>
         </p>
       </div>

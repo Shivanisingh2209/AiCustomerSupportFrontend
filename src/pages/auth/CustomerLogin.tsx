@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { loginUser, loginAgent } from "../../services/authService";
 import { Eye, EyeOff } from "lucide-react";
 
-const Login = () => {
+const CustomerLogin = () => {
   const navigate = useNavigate();
 
   const [role, setRole] = useState<"USER" | "AGENT">("USER");
@@ -167,4 +167,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default CustomerLogin;
