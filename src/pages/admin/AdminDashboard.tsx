@@ -144,7 +144,10 @@ const AdminDashboard = () => {
           {/* Statistics */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
 
-            <div className="rounded-xl bg-white p-6 shadow">
+            <div 
+              onClick={() => navigate("/admin/tickets")}
+              className="rounded-xl bg-white p-6 shadow"
+            >
               <p className="text-sm text-gray-500">
                 Total Tickets
               </p>
@@ -154,7 +157,10 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow">
+            <div
+              onClick={() => navigate("/admin/tickets?status=OPEN")}
+              className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+            >
               <p className="text-sm text-gray-500">
                 Open
               </p>
@@ -164,7 +170,10 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow">
+            <div 
+             onClick={() => navigate("/admin/tickets?status=IN_PROGRESS")}
+             className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+            >
               <p className="text-sm text-gray-500">
                 In Progress
               </p>
@@ -174,7 +183,10 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow">
+            <div 
+             onClick={() => navigate("/admin/tickets?status=RESOLVED")}
+             className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+            >
               <p className="text-sm text-gray-500">
                 Resolved
               </p>
@@ -184,7 +196,10 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow">
+            <div 
+             onClick={() => navigate("/admin/tickets?status=CLOSED")}
+             className="cursor-pointer rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+            >
               <p className="text-sm text-gray-500">
                 Closed
               </p>
