@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { assignTicketToAgent, getTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
@@ -8,6 +8,9 @@ import { getAgents } from "../../services/agentService";
 
 const AdminTickets = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const statusFromDashboard = searchParams.get("status") || "ALL";
 
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgents, setSelectedAgents] = useState<
@@ -23,7 +26,7 @@ const AdminTickets = () => {
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState(statusFromDashboard);
 
   useEffect(() => {
     const loadTickets = async () => {
