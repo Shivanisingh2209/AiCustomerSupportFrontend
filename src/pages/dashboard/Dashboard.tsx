@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { getMyTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
+import {
+  getMyUnreadNotifications,
+} from "../../services/notificationService";
+
 import ChatBot from "../../components/Chatbot";
 
 const Dashboard = () => {
@@ -13,6 +17,8 @@ const Dashboard = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     const loadTickets = async () => {
@@ -31,6 +37,30 @@ const Dashboard = () => {
     };
 
     loadTickets();
+  }, []);
+
+  // ================= NOTIFICATION COUNT =================
+
+  useEffect(() => {
+    const loadNotificationCount = async () => {
+      try {
+        const notifications = await getMyUnreadNotifications();
+
+        setNotificationCount(notifications.length);
+
+        console.log(
+          "Unread notifications:",
+          notifications.length
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load notification count:",
+          error
+        );
+      }
+    };
+
+    loadNotificationCount();
   }, []);
 
   // ================= TICKET STATISTICS =================
@@ -165,6 +195,8 @@ const Dashboard = () => {
 
           <div className="grid gap-5 md:grid-cols-3">
 
+            {/* CREATE TICKET */}
+
             <div
               onClick={() => navigate("/tickets/create")}
               className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-purple-200 hover:shadow-lg"
@@ -187,6 +219,8 @@ const Dashboard = () => {
               </p>
 
             </div>
+
+            {/* MY TICKETS */}
 
             <div
               onClick={() => navigate("/tickets")}
@@ -211,18 +245,44 @@ const Dashboard = () => {
 
             </div>
 
+            {/* NOTIFICATIONS */}
+
             <div
               onClick={() => navigate("/notifications")}
-              className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-yellow-200 hover:shadow-lg"
+              className={`group cursor-pointer rounded-2xl border bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg ${
+                notificationCount > 0
+                  ? "border-yellow-300"
+                  : "border-gray-100 hover:border-yellow-200"
+              }`}
             >
 
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl transition group-hover:scale-110">
-                🔔
+              <div className="mb-4 flex items-center justify-between">
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl transition group-hover:scale-110">
+                  🔔
+                </div>
+
+                {notificationCount > 0 && (
+                  <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-red-500 px-2 text-xs font-bold text-white shadow-sm">
+                    {notificationCount}
+                  </span>
+                )}
+
               </div>
 
-              <h3 className="font-semibold text-gray-800">
-                Notifications
-              </h3>
+              <div className="flex items-center gap-2">
+
+                <h3 className="font-semibold text-gray-800">
+                  Notifications
+                </h3>
+
+                {notificationCount > 0 && (
+                  <span className="text-xs font-semibold text-red-500">
+                    New
+                  </span>
+                )}
+
+              </div>
 
               <p className="mt-2 text-sm text-gray-500">
                 Stay updated with your ticket activity.
@@ -246,6 +306,8 @@ const Dashboard = () => {
           </h2>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+
+            {/* OPEN */}
 
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
 
@@ -271,6 +333,8 @@ const Dashboard = () => {
 
             </div>
 
+            {/* IN PROGRESS */}
+
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
 
               <div className="flex items-center justify-between">
@@ -294,6 +358,8 @@ const Dashboard = () => {
               </p>
 
             </div>
+
+            {/* RESOLVED */}
 
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
 
@@ -319,20 +385,33 @@ const Dashboard = () => {
 
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"> 
-              <div className="flex items-center justify-between"> 
-                <p className="text-sm text-gray-500"> 
-                  Closed 
-                </p> 
-                <span className="text-lg"> ⚫ </span> 
-              </div> 
-              <p className="mt-2 text-3xl font-bold text-gray-700"> 
-                {closedTickets} 
-              </p> 
-              <p className="mt-1 text-xs text-gray-400"> 
-                Completed tickets 
-              </p> 
+            {/* CLOSED */}
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+
+              <div className="flex items-center justify-between">
+
+                <p className="text-sm text-gray-500">
+                  Closed
+                </p>
+
+                <span className="text-lg">
+                  ⚫
+                </span>
+
+              </div>
+
+              <p className="mt-2 text-3xl font-bold text-gray-700">
+                {closedTickets}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400">
+                Completed tickets
+              </p>
+
             </div>
+
+            {/* TOTAL */}
 
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
 
