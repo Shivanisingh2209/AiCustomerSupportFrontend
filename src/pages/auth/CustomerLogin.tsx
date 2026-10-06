@@ -40,6 +40,12 @@ const CustomerLogin = () => {
 
       const jwtRole = payload.role || payload.roles;
 
+      console.log("JWT Payload:", payload);
+
+      const userId = payload.userId;
+
+      localStorage.setItem("userId", userId);
+
       console.log("Logged in role:", jwtRole);
 
       const normalizedRole =
@@ -57,6 +63,9 @@ const CustomerLogin = () => {
 
       // Save JWT token
       localStorage.setItem("token", token);
+
+      // Save logged-in user ID
+      localStorage.setItem("userId", payload.userId);
       
       // Save logged-in email
       localStorage.setItem("userEmail", email);

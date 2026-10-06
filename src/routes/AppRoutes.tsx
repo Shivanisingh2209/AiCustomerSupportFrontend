@@ -16,6 +16,7 @@ import AdminLogin from "../pages/auth/AdminLogin";
 import CustomerLogin from "../pages/auth/CustomerLogin";
 import AgentLogin from "../pages/auth/AgentLogin";
 import Home from "../pages/Home";
+import Notifications from "../pages/Notifications";
 
 const AppRoutes = () => {
   return (
@@ -124,6 +125,11 @@ const AppRoutes = () => {
               <AdminTicketDetails />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+          path="/notifications"
+          element={<Notifications />}
         />
 
       </Routes>

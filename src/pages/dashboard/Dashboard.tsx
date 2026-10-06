@@ -116,7 +116,7 @@ const Dashboard = () => {
 
         {/* ================= HERO ================= */}
 
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 p-8 text-white shadow-lg md:p-10">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-purple-700 via-purple-600 to-indigo-600 p-8 text-white shadow-lg md:p-10">
 
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10" />
 
