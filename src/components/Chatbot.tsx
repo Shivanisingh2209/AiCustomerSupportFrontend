@@ -1,7 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
-type Msg = { role: "user" | "bot"; text: string };
+type Msg = { role: "user" | "bot"; text: string; offerTicket?: boolean };
+
+const FALLBACK_TEXT = "I'm not sure about that";
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
@@ -33,7 +35,14 @@ export default function ChatBot() {
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
-      setMessages((m) => [...m, { role: "bot", text: data.reply }]);
+      setMessages((m) => [
+        ...m,
+        {
+          role: "bot",
+          text: data.reply,
+          offerTicket: data.reply.startsWith(FALLBACK_TEXT),
+        },
+      ]);
     } catch {
       setMessages((m) => [
         ...m,
@@ -53,6 +62,39 @@ export default function ChatBot() {
       setConversationId(id);
     }, []);
 
+    const createTicket = async () => {
+      const token = localStorage.getItem("token"); // <-- apne project me jis key me JWT save karti ho wo likho
+      if (!token) {
+        setMessages((m) => [
+          ...m,
+          { role: "bot", text: "Please log in to create a support ticket." },
+        ]);
+        return;
+      }
+    
+      try {
+        const res = await fetch("http://localhost:8080/chat/escalate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ conversationId }),
+        });
+        if (!res.ok) throw new Error("Request failed");
+        const data = await res.json();
+        setMessages((m) => [
+          ...m.map((x) => ({ ...x, offerTicket: false })),
+          { role: "bot", text: data.message },
+        ]);
+      } catch {
+        setMessages((m) => [
+          ...m,
+          { role: "bot", text: "Sorry, I couldn't create the ticket. Please try again." },
+        ]);
+      }
+    };
+
   return (
     <>
       {open && (
@@ -62,15 +104,24 @@ export default function ChatBot() {
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-                  m.role === "user"
-                    ? "ml-auto bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-900"
-                }`}
-              >
-                {m.text}
+              <div key={i}>
+                <div
+                  className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
+                    m.role === "user"
+                      ? "ml-auto bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-900"
+                  }`}
+                >
+                  {m.text}
+                </div>
+                {m.offerTicket && (
+                  <button
+                    onClick={createTicket}
+                    className="mt-1 text-xs bg-green-600 text-white px-2 py-1 rounded"
+                  >
+                    Create a support ticket
+                  </button>
+                )}
               </div>
             ))}
             {loading && (
