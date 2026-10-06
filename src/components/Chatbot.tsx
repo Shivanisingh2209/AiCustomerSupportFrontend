@@ -11,6 +11,8 @@ export default function ChatBot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  
+  const [conversationId, setConversationId] = useState("");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,7 +29,7 @@ export default function ChatBot() {
       const res = await fetch("http://localhost:8080/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ conversationId, message: text }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -41,6 +43,15 @@ export default function ChatBot() {
       setLoading(false);
     }
   };
+
+    useEffect(() => {
+      let id = sessionStorage.getItem("chatConversationId");
+      if (!id) {
+        id = crypto.randomUUID();
+        sessionStorage.setItem("chatConversationId", id);
+      }
+      setConversationId(id);
+    }, []);
 
   return (
     <>
