@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   Inbox,
 } from "lucide-react";
-import { getMyNotifications } from "../services/notificationService";
+import { getMyNotifications, markNotificationAsRead } from "../services/notificationService";
 import type {
   Notification,
 } from "../services/notificationService";
@@ -21,6 +21,10 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read
+  ).length;
 
   useEffect(() => {
     loadNotifications();
@@ -90,15 +94,36 @@ const Notifications = () => {
     });
   };
 
-  const handleNotificationClick = (notification: Notification) => {
-    if (notification.ticketId) {
-      navigate(`/tickets/${notification.ticketId}`);
+  const handleNotificationClick = async (
+    notification: Notification
+  ) => {
+    try {
+      if (!notification.read) {
+        await markNotificationAsRead(notification.id);
+  
+        setNotifications((current) =>
+          current.map((item) =>
+            item.id === notification.id
+              ? { ...item, read: true }
+              : item
+          )
+        );
+      }
+  
+      if (notification.ticketId) {
+        navigate(`/tickets/${notification.ticketId}`);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to mark notification as read:",
+        error
+      );
+  
+      if (notification.ticketId) {
+        navigate(`/tickets/${notification.ticketId}`);
+      }
     }
   };
-
-  const unreadCount = notifications.filter(
-    (notification) => !notification.read
-  ).length;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">

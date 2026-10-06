@@ -40,3 +40,13 @@ export const getMyUnreadNotifications = async (): Promise<
 
   return response.data;
 };
+
+export const markNotificationAsRead = async (
+  notificationId: string
+): Promise<Notification> => {
+  const response = await api.put(
+    `/notifications/${notificationId}/read`
+  );
+
+  return response.data;
+};
