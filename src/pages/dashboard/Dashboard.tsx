@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getMyTickets } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
+import ChatBot from "../../components/Chatbot";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -506,6 +507,8 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      <ChatBot />
     </div>
   );
 };
