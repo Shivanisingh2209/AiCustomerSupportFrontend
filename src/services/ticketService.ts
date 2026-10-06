@@ -9,9 +9,19 @@ export interface TicketPage {
   number: number;
 }
 
+// Admin - all tickets
 export const getTickets = async (): Promise<Ticket[]> => {
   const response = await api.get<TicketPage>("/tickets");
   return response.data.content;
+};
+
+// Customer - only logged-in customer's tickets
+export const getMyTickets = async (): Promise<Ticket[]> => {
+  const response = await api.get<Ticket[]>(
+    "/tickets/my"
+  );
+
+  return response.data;
 };
 
 export const getMyAssignedTickets = async (): Promise<Ticket[]> => {

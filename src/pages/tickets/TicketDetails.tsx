@@ -1,248 +1,68 @@
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import api from "../../services/api";
-import {
-  getTicketMessages,
-  sendTicketMessage,
-  updateTicketMessage,
-  deleteTicketMessage,
-} from "../../services/ticketMessageService";
-
 import type { Ticket } from "../../types/ticket";
-import type { TicketMessage } from "../../types/ticketMessage";
-import { updateTicketStatus } from "../../services/ticketService";
-import AgentNavbar from "../../components/AgentNavbar";
 
 const TicketDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [messages, setMessages] = useState<TicketMessage[]>([]);
-
-  const [message, setMessage] = useState("");
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
-
   const [loading, setLoading] = useState(true);
-  const [messagesLoading, setMessagesLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [statusError, setStatusError] = useState("");
-
   const [error, setError] = useState("");
-  const [messageError, setMessageError] = useState("");
-  const [sendError, setSendError] = useState("");
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     const loadTicket = async () => {
-      if (!id) {
-        setError("Ticket ID is missing.");
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await api.get<Ticket>(`/tickets/${id}`);
+
+        console.log("Ticket details:", response.data);
 
         setTicket(response.data);
       } catch (error) {
         console.error("Failed to load ticket:", error);
-        setError("Failed to load ticket details.");
+        setError("Failed to load ticket.");
       } finally {
         setLoading(false);
       }
     };
 
-    loadTicket();
+    if (id) {
+      loadTicket();
+    }
   }, [id]);
 
-  useEffect(() => {
-    const loadMessages = async () => {
-      if (!id) {
-        return;
-      }
+  const handleCloseTicket = async () => {
+    if (!id) return;
 
-      try {
-        setMessagesLoading(true);
-        setMessageError("");
-
-        const data = await getTicketMessages(id);
-
-        console.log(
-          "FULL MESSAGE RESPONSE:",
-          JSON.stringify(data, null, 2)
-        );
-
-        setMessages(data);
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-        setMessageError("Failed to load conversation.");
-      } finally {
-        setMessagesLoading(false);
-      }
-    };
-  
-  loadMessages();
-  }, [id]);
-  
-  const handleEditMessage = async (
-    messageId: string
-    ) => {
-      if (!id || !editingText.trim()) {
-        return;
-      }
-  
-    try {
-      const updatedMessage = await updateTicketMessage(
-        id,
-        messageId,
-        editingText.trim()
-      );
-  
-      setMessages((previousMessages) =>
-        previousMessages.map((item) =>
-          item.id === messageId
-            ? updatedMessage
-            : item
-        )
-      );
-  
-      setEditingMessageId(null);
-      setEditingText("");
-  
-    } catch (error) {
-      console.error("Failed to edit message:", error);
-      setSendError("Failed to edit message.");
-    }
-  };
-
-  const handleDeleteMessage = async (
-    messageId: string
-  ) => {
-    if (!id) {
-      return;
-    }
-  
     const confirmed = window.confirm(
-      "Are you sure you want to delete this message?"
+      "Are you sure you want to close this ticket?"
     );
-  
-    if (!confirmed) {
-      return;
-    }
-  
-    try {
-      setSendError("");
-  
-      console.log("Deleting message:", messageId);
-      console.log("Ticket ID:", id);
-  
-      await deleteTicketMessage(id, messageId);
-  
-      console.log("Message deleted successfully");
-  
-      setMessages((previousMessages) =>
-        previousMessages.filter(
-          (item) => item.id !== messageId
-        )
-      );
-  
-    } catch (error: any) {
-      console.error(
-        "DELETE MESSAGE ERROR:",
-        error
-      );
-  
-      console.error(
-        "STATUS:",
-        error?.response?.status
-      );
-  
-      console.error(
-        "RESPONSE:",
-        error?.response?.data
-      );
-  
-      setSendError(
-        `Failed to delete message. Status: ${
-          error?.response?.status || "Unknown"
-        }`
-      );
-    }
-  };
 
-  const handleStatusUpdate = async (
-    newStatus: string
-  ) => {
-    if (!id) {
-      return;
-    }
-  
+    if (!confirmed) return;
+
     try {
-      setUpdatingStatus(true);
-      setStatusError("");
-  
-      const updatedTicket = await updateTicketStatus(
-        id,
-        newStatus
+      setClosing(true);
+
+      const response = await api.patch<Ticket>(
+        `/tickets/${id}/close`
       );
-  
-      setTicket(updatedTicket);
-  
+
+      setTicket(response.data);
+
+      alert("Ticket closed successfully.");
     } catch (error) {
-      console.error("Failed to update ticket status:", error);
-      setStatusError("Failed to update ticket status.");
+      console.error("Failed to close ticket:", error);
+      alert("Failed to close ticket.");
     } finally {
-      setUpdatingStatus(false);
-    }
-  };
-
-  const handleSendMessage = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-
-    if (!id || !message.trim()) {
-      return;
-    }
-
-    try {
-      setSending(true);
-      setSendError("");
-    
-      const newMessage = await sendTicketMessage(
-        id,
-        message.trim()
-      );
-    
-      console.log("Message sent:", newMessage);
-    
-      setMessages((previousMessages) => [
-        ...previousMessages,
-        newMessage,
-      ]);
-    
-      setMessage("");
-    
-      const ticketResponse = await api.get<Ticket>(
-        `/tickets/${id}`
-      );
-    
-      setTicket(ticketResponse.data);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      setSendError("Failed to send message.");
-    } finally {
-      setSending(false);
+      setClosing(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <h1 className="text-2xl font-bold">
           Loading ticket...
         </h1>
@@ -254,338 +74,239 @@ const TicketDetails = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-lg bg-red-100 p-4 text-red-700">
+          <div className="rounded-xl bg-red-100 p-6 text-red-700">
             {error || "Ticket not found."}
           </div>
 
           <button
             onClick={() => navigate("/tickets")}
-            className="mt-4 rounded-lg bg-purple-600 px-5 py-3 font-semibold text-white"
+            className="mt-5 rounded-lg bg-gray-800 px-5 py-3 font-semibold text-white hover:bg-gray-900"
           >
-            Back to Tickets
+            ← Back to My Tickets
           </button>
         </div>
       </div>
     );
   }
-  
+
+  const getStatusStyle = (status?: string) => {
+    switch (status) {
+      case "OPEN":
+        return "bg-blue-100 text-blue-700";
+
+      case "IN_PROGRESS":
+        return "bg-yellow-100 text-yellow-700";
+
+      case "RESOLVED":
+        return "bg-green-100 text-green-700";
+
+      case "CLOSED":
+        return "bg-gray-100 text-gray-700";
+
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const getPriorityStyle = (priority?: string) => {
+    switch (priority) {
+      case "HIGH":
+        return "bg-red-100 text-red-700";
+
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-700";
+
+      case "LOW":
+        return "bg-green-100 text-green-700";
+
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <AgentNavbar />
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-5xl">
 
-    <main className="p-8">
-      <div className="mx-auto max-w-4xl">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/tickets")}
+          className="mb-6 text-sm font-semibold text-purple-600 hover:text-purple-800"
+        >
+          ← Back to My Tickets
+        </button>
 
-        <div className="mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">
-              Ticket Details
-            </h1>
+        {/* Header */}
+        <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
 
-            <p className="mt-1 text-gray-500">
-              Customer support ticket
-            </p>
+            <div>
+              <p className="text-sm text-gray-400">
+                Ticket ID
+              </p>
+
+              <p className="mt-1 text-sm font-medium text-gray-600">
+                {ticket.id}
+              </p>
+
+              <h1 className="mt-4 text-3xl font-bold text-gray-900">
+                {ticket.subject || "No subject"}
+              </h1>
+            </div>
+
+            <div className="flex gap-2">
+              <span
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${getStatusStyle(
+                  ticket.status
+                )}`}
+              >
+                {ticket.status || "UNKNOWN"}
+              </span>
+
+              <span
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${getPriorityStyle(
+                  ticket.priority
+                )}`}
+              >
+                {ticket.priority || "N/A"}
+              </span>
+            </div>
+
           </div>
         </div>
 
-        {/* Ticket Information */}
-        <div className="rounded-xl bg-white p-8 shadow">
-
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold">
-              {ticket.subject}
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Ticket ID: {ticket.id}
-            </p>
-          </div>
-
-          {/* Status / Priority / Agent */}
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-
-            <div className="rounded-lg bg-gray-50 p-4">
-              <p className="text-sm text-gray-500">
-                Status
-              </p>
-            
-              <select
-                value={ticket.status}
-                onChange={(e) =>
-                  handleStatusUpdate(e.target.value)
-                }
-                disabled={updatingStatus}
-                className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-semibold outline-none focus:border-purple-600 disabled:opacity-50"
-              >
-                <option value="OPEN">
-                  OPEN
-                </option>
-            
-                <option value="IN_PROGRESS">
-                  IN_PROGRESS
-                </option>
-            
-                <option value="RESOLVED">
-                  RESOLVED
-                </option>
-            
-                <option value="CLOSED">
-                  CLOSED
-                </option>
-              </select>
-            
-              {updatingStatus && (
-                <p className="mt-2 text-xs text-gray-500">
-                  Updating status...
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-lg bg-gray-50 p-4">
-              <p className="text-sm text-gray-500">
-                Priority
-              </p>
-
-              <p className="mt-1 font-semibold">
-                {ticket.priority}
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-gray-50 p-4">
-              <p className="text-sm text-gray-500">
-                Assigned Agent
-              </p>
-
-              <p className="mt-1 font-semibold">
-                {ticket.agentId ? "Assigned to you" : "Unassigned"}
-              </p>
-            </div>
-
-          </div>
-
-          {statusError && (
-            <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
-              {statusError}
-            </div>
-          )}
-
-          {/* Customer */}
-          <div className="mb-8">
-            <h3 className="mb-3 text-lg font-semibold">
-              Customer Information
-            </h3>
-
-            <div className="rounded-lg bg-gray-50 p-5">
-
-              <p>
-                <span className="font-medium">
-                  Name:
-                </span>{" "}
-                {ticket.customerName}
-              </p>
-
-              <p className="mt-2">
-                <span className="font-medium">
-                  Email:
-                </span>{" "}
-                {ticket.customerEmail}
-              </p>
-
-              {ticket.customerId && (
-                <p className="mt-2">
-                  <span className="font-medium">
-                    Customer ID:
-                  </span>{" "}
-                  {ticket.customerId}
-                </p>
-              )}
-
-            </div>
-          </div>
+        {/* Main Content */}
+        <div className="grid gap-6 md:grid-cols-3">
 
           {/* Description */}
-          <div className="mb-8">
-            <h3 className="mb-3 text-lg font-semibold">
-              Description
-            </h3>
+          <div className="md:col-span-2">
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
 
-            <div className="rounded-lg bg-gray-50 p-5 text-gray-700">
-              {ticket.description}
+              <h2 className="text-xl font-bold text-gray-900">
+                Issue Description
+              </h2>
+
+              <p className="mt-4 whitespace-pre-wrap leading-7 text-gray-600">
+                {ticket.description || "No description provided."}
+              </p>
+
             </div>
           </div>
 
-          {/* Conversation */}
-          <div className="border-t pt-8">
+          {/* Ticket Information */}
+          <div>
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
 
-            <h3 className="mb-5 text-xl font-semibold">
-              Conversation
-            </h3>
+              <h2 className="text-xl font-bold text-gray-900">
+                Ticket Information
+              </h2>
 
-            {messageError && (
-              <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
-                {messageError}
-              </div>
-            )}
+              <div className="mt-5 space-y-5">
 
-            {sendError && (
-              <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
-                {sendError}
-              </div>
-            )}
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Customer
+                  </p>
 
-            {messagesLoading ? (
-              <div className="rounded-lg bg-gray-50 p-5 text-gray-500">
-                Loading conversation...
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="rounded-lg bg-gray-50 p-5 text-center text-gray-500">
-                No messages yet.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((item) => {
-                  const isAgentMessage =
-                    item.senderRole === "AGENT";
-                
-                  const isEditing =
-                    editingMessageId === item.id;
-                
-                  return (
-                    <div
-                      key={item.id}
-                      className="rounded-lg border bg-gray-50 p-5"
-                    >
-                
-                      {/* Message Header */}
-                      <div className="mb-2 flex items-center justify-between">
-                
-                        <span className="font-semibold">
-                          {item.senderRole === "AGENT"
-                            ? "Agent"
-                            : "Customer"}
-                        </span>
-                
-                        <span className="text-xs text-gray-500">
-                          {new Date(item.createdAt).toLocaleString()}
-                        </span>
-                
-                      </div>
-                
-                      {/* Message */}
-                      {isEditing ? (
-                        <div>
-                
-                          <textarea
-                            value={editingText}
-                            onChange={(e) =>
-                              setEditingText(e.target.value)
-                            }
-                            rows={3}
-                            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-purple-600"
-                          />
-                
-                          <div className="mt-3 flex gap-2">
-                
-                            <button
-                              onClick={() =>
-                                handleEditMessage(item.id)
-                              }
-                              disabled={!editingText.trim()}
-                              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
-                            >
-                              Save
-                            </button>
-                
-                            <button
-                              onClick={() => {
-                                setEditingMessageId(null);
-                                setEditingText("");
-                              }}
-                              className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
-                            >
-                              Cancel
-                            </button>
-                
-                          </div>
-                
-                        </div>
-                      ) : (
-                        <p className="text-gray-700">
-                          {item.message}
-                        </p>
-                      )}
-                
-                      {/* Agent Actions */}
-                      {isAgentMessage && !isEditing && (
-                        <div className="mt-4 flex gap-2">
-                
-                          <button
-                            onClick={() => {
-                              setEditingMessageId(item.id);
-                              setEditingText(item.message);
-                              setSendError("");
-                            }}
-                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium hover:bg-gray-50"
-                          >
-                            Edit
-                          </button>
-                
-                          <button
-                            onClick={() =>
-                              handleDeleteMessage(item.id)
-                            }
-                            className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
-                
-                        </div>
-                      )}
-                
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Reply */}
-            <form onSubmit={handleSendMessage} className="mt-6">
-
-              <label className="mb-2 block font-medium">
-                Reply to Customer
-              </label>
-            
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your reply to the customer..."
-                rows={4}
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-purple-600"
-              />
-            
-              {sendError && (
-                <div className="mt-3 rounded-lg bg-red-100 p-3 text-sm text-red-700">
-                  {sendError}
+                  <p className="mt-1 font-medium text-gray-800">
+                    {ticket.customerName || "-"}
+                  </p>
                 </div>
-              )}
-            
-              <div className="mt-3 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={sending || !message.trim()}
-                  className="rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {sending ? "Sending..." : "Send Reply"}
-                </button>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Email
+                  </p>
+
+                  <p className="mt-1 break-all font-medium text-gray-800">
+                    {ticket.customerEmail || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Assigned Agent
+                  </p>
+
+                  <p className="mt-1 font-medium text-gray-800">
+                    {ticket.agentId || "Not assigned"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Priority
+                  </p>
+
+                  <p className="mt-1 font-medium text-gray-800">
+                    {ticket.priority || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Status
+                  </p>
+
+                  <p className="mt-1 font-medium text-gray-800">
+                    {ticket.status || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">
+                    Created At
+                  </p>
+
+                  <p className="mt-1 font-medium text-gray-800">
+                    {ticket.createdAt
+                      ? new Date(ticket.createdAt).toLocaleString()
+                      : "-"}
+                  </p>
+                </div>
+
               </div>
-            
-            </form>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Actions */}
+        <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+
+          <h2 className="text-xl font-bold text-gray-900">
+            Actions
+          </h2>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+
+            {ticket.status !== "CLOSED" && (
+              <button
+                onClick={handleCloseTicket}
+                disabled={closing}
+                className="rounded-lg bg-gray-800 px-5 py-3 font-semibold text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {closing ? "Closing..." : "Close Ticket"}
+              </button>
+            )}
+
+            {ticket.status === "CLOSED" && (
+              <div className="rounded-lg bg-gray-100 px-5 py-3 font-semibold text-gray-600">
+                ✓ This ticket is closed
+              </div>
+            )}
+
+            <button
+              onClick={() => navigate("/tickets")}
+              className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Back to Tickets
+            </button>
 
           </div>
         </div>
+
       </div>
-    </main>
     </div>
   );
 };
