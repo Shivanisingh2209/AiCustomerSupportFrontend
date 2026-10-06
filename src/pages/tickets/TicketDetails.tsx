@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
+import {
+  getTicketMessages,
+  sendTicketMessage,
+} from "../../services/messageService";
+import type { TicketMessage } from "../../services/messageService";
 import type { Ticket } from "../../types/ticket";
 
 const TicketDetails = () => {
@@ -8,10 +13,20 @@ const TicketDetails = () => {
   const navigate = useNavigate();
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [messageText, setMessageText] = useState("");
+
   const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+
   const [error, setError] = useState("");
+
   const [closing, setClosing] = useState(false);
 
+  /*
+   * Load ticket
+   */
   useEffect(() => {
     const loadTicket = async () => {
       try {
@@ -33,6 +48,81 @@ const TicketDetails = () => {
     }
   }, [id]);
 
+  /*
+   * Load conversation messages
+   */
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!id) return;
+
+      try {
+        setMessagesLoading(true);
+
+        const data = await getTicketMessages(id);
+
+        console.log("Ticket messages:", data);
+
+        setMessages(data);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setMessagesLoading(false);
+      }
+    };
+
+    loadMessages();
+  }, [id]);
+
+  /*
+   * Send message
+   */
+  const handleSendMessage = async () => {
+    if (!id) return;
+
+    const trimmedMessage = messageText.trim();
+
+    if (!trimmedMessage) {
+      return;
+    }
+
+    try {
+      setSending(true);
+
+      const newMessage = await sendTicketMessage(
+        id,
+        trimmedMessage
+      );
+
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        newMessage,
+      ]);
+
+      setMessageText("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      alert("Failed to send message.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  /*
+   * Send message using Enter
+   */
+  const handleMessageKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+
+      handleSendMessage();
+    }
+  };
+
+  /*
+   * Close ticket
+   */
   const handleCloseTicket = async () => {
     if (!id) return;
 
@@ -60,6 +150,9 @@ const TicketDetails = () => {
     }
   };
 
+  /*
+   * Loading
+   */
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -70,6 +163,9 @@ const TicketDetails = () => {
     );
   }
 
+  /*
+   * Error
+   */
   if (error || !ticket) {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
@@ -79,7 +175,7 @@ const TicketDetails = () => {
           </div>
 
           <button
-            onClick={() => navigate("/tickets")}
+            onClick={() => navigate(backRoute)}
             className="mt-5 rounded-lg bg-gray-800 px-5 py-3 font-semibold text-white hover:bg-gray-900"
           >
             ← Back to My Tickets
@@ -89,6 +185,9 @@ const TicketDetails = () => {
     );
   }
 
+  /*
+   * Status style
+   */
   const getStatusStyle = (status?: string) => {
     switch (status) {
       case "OPEN":
@@ -108,6 +207,9 @@ const TicketDetails = () => {
     }
   };
 
+  /*
+   * Priority style
+   */
   const getPriorityStyle = (priority?: string) => {
     switch (priority) {
       case "HIGH":
@@ -124,19 +226,29 @@ const TicketDetails = () => {
     }
   };
 
+  /*
+   * Current logged-in role
+   */
+  const role = localStorage.getItem("role");
+
+  const backRoute =
+    role === "AGENT"
+      ? "/agent/dashboard"
+      : "/tickets";
+  
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-5xl">
 
-        {/* Back Button */}
+        {/* Back */}
         <button
-          onClick={() => navigate("/tickets")}
+          onClick={() => navigate(backRoute)}
           className="mb-6 text-sm font-semibold text-purple-600 hover:text-purple-800"
         >
           ← Back to My Tickets
         </button>
 
-        {/* Header */}
+        {/* Ticket Header */}
         <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
 
@@ -178,8 +290,10 @@ const TicketDetails = () => {
         {/* Main Content */}
         <div className="grid gap-6 md:grid-cols-3">
 
-          {/* Description */}
+          {/* LEFT SIDE */}
           <div className="md:col-span-2">
+
+            {/* Description */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
 
               <h2 className="text-xl font-bold text-gray-900">
@@ -191,10 +305,186 @@ const TicketDetails = () => {
               </p>
 
             </div>
+
+            {/* Conversation */}
+            <div className="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm">
+
+              {/* Header */}
+              <div className="border-b border-gray-200 p-6">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Conversation
+                    </h2>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      Communicate with the support team
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                    {messages.length}{" "}
+                    {messages.length === 1
+                      ? "Message"
+                      : "Messages"}
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Messages */}
+              <div className="max-h-125 min-h-62.5 overflow-y-auto p-6">
+
+                {messagesLoading ? (
+                  <div className="flex min-h-50 items-center justify-center">
+                    <p className="text-gray-500">
+                      Loading conversation...
+                    </p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex min-h-50 flex-col items-center justify-center text-center">
+
+                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
+                      💬
+                    </div>
+
+                    <p className="font-semibold text-gray-700">
+                      No messages yet
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      Start the conversation below.
+                    </p>
+
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+
+                    {messages.map((message) => {
+
+                      const isMine =
+                        (role === "AGENT" &&
+                          message.senderRole === "AGENT") ||
+                        (role === "USER" &&
+                          message.senderRole === "CUSTOMER");
+
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${
+                            isMine
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
+                        >
+
+                          <div
+                            className={`max-w-[80%] ${
+                              isMine
+                                ? "items-end"
+                                : "items-start"
+                            } flex flex-col`}
+                          >
+
+                            {/* Sender */}
+                            <p className="mb-1 px-1 text-xs font-semibold text-gray-500">
+                              {message.senderRole === "AGENT"
+                                ? "Support Agent"
+                                : "You"}
+                            </p>
+
+                            {/* Bubble */}
+                            <div
+                              className={`rounded-2xl px-4 py-3 ${
+                                isMine
+                                  ? "rounded-br-md bg-purple-600 text-white"
+                                  : "rounded-bl-md bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
+                                {message.message}
+                              </p>
+                            </div>
+
+                            {/* Time */}
+                            <p className="mt-1 px-1 text-[11px] text-gray-400">
+                              {message.createdAt
+                                ? new Date(
+                                    message.createdAt
+                                  ).toLocaleString()
+                                : ""}
+                            </p>
+
+                          </div>
+
+                        </div>
+                      );
+                    })}
+
+                  </div>
+                )}
+
+              </div>
+
+              {/* Message Input */}
+              {ticket.status !== "CLOSED" ? (
+                <div className="border-t border-gray-200 p-5">
+
+                  <div className="flex gap-3">
+
+                    <textarea
+                      value={messageText}
+                      onChange={(event) =>
+                        setMessageText(event.target.value)
+                      }
+                      onKeyDown={handleMessageKeyDown}
+                      placeholder="Type your message..."
+                      rows={2}
+                      disabled={sending}
+                      className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 disabled:bg-gray-100"
+                    />
+
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={
+                        sending ||
+                        !messageText.trim()
+                      }
+                      className="self-end rounded-xl bg-purple-600 px-5 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {sending ? "Sending..." : "Send"}
+                    </button>
+
+                  </div>
+
+                  <p className="mt-2 text-xs text-gray-400">
+                    Press Enter to send · Shift + Enter for a new line
+                  </p>
+
+                </div>
+              ) : (
+                <div className="border-t border-gray-200 bg-gray-50 p-5 text-center">
+
+                  <p className="font-semibold text-gray-600">
+                    This ticket is closed.
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-400">
+                    You cannot send new messages to a closed ticket.
+                  </p>
+
+                </div>
+              )}
+
+            </div>
           </div>
 
-          {/* Ticket Information */}
+          {/* RIGHT SIDE */}
           <div>
+
             <div className="rounded-2xl bg-white p-6 shadow-sm">
 
               <h2 className="text-xl font-bold text-gray-900">
@@ -260,13 +550,17 @@ const TicketDetails = () => {
 
                   <p className="mt-1 font-medium text-gray-800">
                     {ticket.createdAt
-                      ? new Date(ticket.createdAt).toLocaleString()
+                      ? new Date(
+                          ticket.createdAt
+                        ).toLocaleString()
                       : "-"}
                   </p>
                 </div>
 
               </div>
+
             </div>
+
           </div>
 
         </div>
@@ -280,13 +574,15 @@ const TicketDetails = () => {
 
           <div className="mt-4 flex flex-wrap gap-3">
 
-            {ticket.status !== "CLOSED" && (
+            {ticket.status !== "CLOSED" && role === "USER" && (
               <button
                 onClick={handleCloseTicket}
                 disabled={closing}
                 className="rounded-lg bg-gray-800 px-5 py-3 font-semibold text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {closing ? "Closing..." : "Close Ticket"}
+                {closing
+                  ? "Closing..."
+                  : "Close Ticket"}
               </button>
             )}
 
@@ -297,13 +593,22 @@ const TicketDetails = () => {
             )}
 
             <button
-              onClick={() => navigate("/tickets")}
+              onClick={() => {
+                const role = localStorage.getItem("role");
+            
+                navigate(
+                  role === "AGENT"
+                    ? "/agent/dashboard"
+                    : "/tickets"
+                );
+              }}
               className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
             >
               Back to Tickets
             </button>
 
           </div>
+
         </div>
 
       </div>

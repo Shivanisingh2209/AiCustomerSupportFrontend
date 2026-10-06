@@ -57,10 +57,13 @@ const CustomerLogin = () => {
 
       // Save JWT token
       localStorage.setItem("token", token);
-
+      
       // Save logged-in email
       localStorage.setItem("userEmail", email);
-
+      
+      // Save logged-in role
+      localStorage.setItem("role", normalizedRole);
+      
       // Go to customer dashboard
       navigate("/dashboard");
 

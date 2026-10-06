@@ -27,7 +27,7 @@ const AgentLogin = () => {
       setLoading(true);
 
       const response = await api.post<string>(
-        "/auth/login",
+        "/auth/agent/login",
         {
           email,
           password,
@@ -58,6 +58,7 @@ const AgentLogin = () => {
 
       localStorage.setItem("token", token);
       localStorage.setItem("userEmail", email);
+      localStorage.setItem("role", role);
 
       navigate("/agent/dashboard");
     } catch (error: any) {
