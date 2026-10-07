@@ -110,7 +110,7 @@ const AdminTickets = () => {
     
         setSelectedAgents((previous) => ({
           ...previous,
-          [ticketId]: "",
+          [ticketId]: updatedTicket.agentId ?? agentId,
         }));
     
       } catch (error) {
@@ -391,46 +391,39 @@ const AdminTickets = () => {
                         className="p-4"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex min-w-[220px] flex-col gap-2">
-                      
-                          {ticket.agentId && (
-                            <span className="text-sm font-medium text-green-700">
-                              Currently Assigned
+                        <div>
+                          <p className="text-green-600 font-medium">
+                            Currently Assigned:
+                            <span className="ml-1">
+                              {ticket.agentId
+                                ? agents.find((agent) => agent.id === ticket.agentId)?.name
+                                : "Not Assigned"}
                             </span>
-                          )}
-                      
+                          </p>
+                        
                           <select
-                            value={selectedAgents[ticket.id] || ""}
+                            value={selectedAgents[ticket.id] ?? ticket.agentId ?? ""}
                             onChange={(e) =>
-                              setSelectedAgents((previous) => ({
-                                ...previous,
+                              setSelectedAgents((prev) => ({
+                                ...prev,
                                 [ticket.id]: e.target.value,
                               }))
                             }
-                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
                           >
                             <option value="">Select Agent</option>
-                      
+                        
                             {agents.map((agent) => (
                               <option key={agent.id} value={agent.id}>
-                                {agent.name} ({agent.status})
+                                {agent.name}
                               </option>
                             ))}
                           </select>
-                      
+                        
                           <button
                             onClick={() => handleAssignAgent(ticket.id)}
-                            disabled={
-                              assigningTicketId === ticket.id ||
-                              !selectedAgents[ticket.id]
-                            }
-                            className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
                           >
-                            {assigningTicketId === ticket.id
-                              ? "Assigning..."
-                              : "Assign Agent"}
+                            {ticket.agentId ? "Change Agent" : "Assign Agent"}
                           </button>
-                      
                         </div>
                       </td>
 
