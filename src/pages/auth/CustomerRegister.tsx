@@ -57,7 +57,7 @@ const CustomerRegister = () => {
 
       alert("Registration successful. Please login.");
 
-      navigate("/login");
+      navigate("/customer/login");
     } catch (error: any) {
       console.error("Registration failed:", error);
 

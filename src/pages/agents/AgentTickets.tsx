@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { getMyAssignedTickets } from "../../services/ticketService";
+import { getMyAssignedTickets, updateTicketStatus } from "../../services/ticketService";
 import type { Ticket } from "../../types/ticket";
 import AgentNavbar from "../../components/AgentNavbar";
 
@@ -16,6 +16,7 @@ const AgentTickets = () => {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(statusFromDashboard);
+  const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadTickets = async () => {
@@ -58,6 +59,34 @@ const AgentTickets = () => {
   
     return matchesSearch && matchesStatus;
   });
+
+  const handleTicketStatusChange = async (
+    ticketId: string,
+    newStatus: string
+  ) => {
+    try {
+      setUpdatingTicketId(ticketId);
+      setError("");
+  
+      const updatedTicket = await updateTicketStatus(
+        ticketId,
+        newStatus
+      );
+  
+      setTickets((previousTickets) =>
+        previousTickets.map((ticket) =>
+          ticket.id === ticketId
+            ? { ...ticket, ...updatedTicket }
+            : ticket
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update ticket status:", error);
+      setError("Failed to update ticket status. Please try again.");
+    } finally {
+      setUpdatingTicketId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -222,23 +251,28 @@ const AgentTickets = () => {
                         </span>
                       </td>
   
-                      <td className="p-4">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            ticket.status === "OPEN"
-                              ? "bg-blue-100 text-blue-700"
-                              : ticket.status === "IN_PROGRESS"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : ticket.status === "RESOLVED"
-                              ? "bg-green-100 text-green-700"
-                              : ticket.status === "CLOSED"
-                              ? "bg-gray-200 text-gray-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {ticket.status || "-"}
-                        </span>
-                      </td>
+                      
+                    <td className="p-4">
+                      <select
+                        value={ticket.status}
+                        onChange={(e) =>
+                          handleTicketStatusChange(ticket.id, e.target.value)
+                        }
+                        disabled={updatingTicketId === ticket.id}
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-purple-600 disabled:opacity-50"
+                      >
+                        <option value="OPEN">Open</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                      </select>
+                    
+                      {updatingTicketId === ticket.id && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Updating...
+                        </p>
+                      )}
+                    </td>
   
                       <td className="p-4 text-sm text-gray-600">
                         {ticket.createdAt
